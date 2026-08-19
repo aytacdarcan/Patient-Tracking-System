@@ -1,26 +1,75 @@
-﻿
-<nav class="nav-menu">
-    <div class="nav-title">
-        Hasta Takip
-    </div>
+﻿    @using MudBlazor
+    @inject HastaTakip.UI.Services.LoginStateService LoginState
+    @inject NavigationManager Nav
+    @implements IDisposable
 
-    <ul class="nav-list">
-        <li>
-            <NavLink href="/" Match="NavLinkMatch.All">
-                Ana Sayfa
-            </NavLink>
-        </li>
+    <MudNavMenu Class="pa-4">
 
-        <li>
-            <NavLink href="/hastalar">
-                Hastalar
-            </NavLink>
-        </li>
+        <MudText Typo="Typo.h5" Class="mb-6">
+            Hasta Takip
+        </MudText>
 
-        <li>
-            <NavLink href="/hastalar/yeni" class="new-btn">
-                + Yeni Hasta
-            </NavLink>
-        </li>
-    </ul>
-</nav>
+        <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">
+            Ana Sayfa
+        </MudNavLink>
+
+        <MudNavLink Href="/hastalar" Icon="@Icons.Material.Filled.People">
+            Hastalar
+        </MudNavLink>
+
+        <MudDivider Class="my-4" />
+
+        <MudButton Href="/hastalar/yeni"
+                   Variant="Variant.Filled"
+                   Color="Color.Success"
+                   FullWidth="true"
+                   StartIcon="@Icons.Material.Filled.Add">
+            Yeni Hasta
+        </MudButton>
+
+        @if (LoginState.IsLoggedIn)
+        {
+            <MudDivider Class="my-4" />
+
+            <MudPaper Class="pa-3" Elevation="0" Style="background: rgba(255,255,255,0.08); color:white;">
+                <MudText Typo="Typo.caption">Kullanıcı</MudText>
+                <MudText Typo="Typo.body2" Style="font-weight:600;">
+                    @LoginState.Username
+                </MudText>
+
+                <MudText Typo="Typo.caption" Class="mt-2">Rol</MudText>
+                <MudText Typo="Typo.body2" Style="font-weight:600;">
+                    @LoginState.Role
+                </MudText>
+
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Default"
+                           FullWidth="true"
+                           Size="Size.Small"
+                           Class="mt-3"
+                           OnClick="Logout">
+                    Çıkış Yap
+                </MudButton>
+            </MudPaper>
+        }
+
+    </MudNavMenu>
+
+    @code {
+        protected override void OnInitialized()
+        {
+            // ensure the menu re-renders when login state changes
+            LoginState.OnChange += StateHasChanged;
+        }
+
+        void Logout()
+        {
+            LoginState.Logout();
+            Nav.NavigateTo("/login");
+        }
+
+        public void Dispose()
+        {
+            LoginState.OnChange -= StateHasChanged;
+        }
+    }

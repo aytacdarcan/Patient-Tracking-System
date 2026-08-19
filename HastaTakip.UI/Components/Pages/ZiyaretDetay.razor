@@ -1,415 +1,515 @@
 ﻿@page "/ziyaretler/{ziyaretId:int}"
+@inject HastaTakip.UI.Services.LoginStateService LoginState
 @using HastaTakip.UI.Dtos
+@using MudBlazor
 @inject HastaTakip.UI.Services.HastaApi Api
 @inject NavigationManager Nav
 @rendermode InteractiveServer
 @inject HttpClient Http
 @inject IJSRuntime JS
 
+<MudStack Row="true"
+          AlignItems="AlignItems.Center"
+          Justify="Justify.SpaceBetween"
+          Class="mb-4">
 
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-    <h5 style="margin:0;">Ziyaret Detay</h5>
-    <button class="btn-blue" @onclick="GeriHasta">Geri</button>
-</div>
+    <MudText Typo="Typo.h5" Style="font-weight:700;">
+        Ziyaret Detay
+    </MudText>
 
+    <MudButton Variant="Variant.Outlined"
+               Color="Color.Default"
+               OnClick="GeriHasta"
+               Size="Size.Small">
+        Geri
+    </MudButton>
+
+</MudStack>
 
 @if (loading)
 {
-    <p>Yükleniyor…</p>
+    <div class="d-flex justify-center my-4">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    </div>
 }
 else if (!string.IsNullOrEmpty(error))
 {
-    <p style="color:#b00020">@error</p>
+    <MudAlert Severity="Severity.Error" Elevation="0" Dense="true">@error</MudAlert>
 }
 else if (bundle is null)
 {
-    <p>Kayıt bulunamadı.</p>
+    <MudText Color="Color.Secondary">Kayıt bulunamadı.</MudText>
 }
 else
 {
     <!--  ZİYARET-->
-    <section style="border:1px solid #eee;border-radius:10px;padding:.75rem;margin-bottom:1rem;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-            <h5 style="margin:0;">Ziyaret</h5>
-            <button class="btn btn-sm btn-outline-primary" @onclick="ToggleEditVisit">
+    <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
+
+        <MudStack Row="true"
+                  AlignItems="AlignItems.Center"
+                  Justify="Justify.SpaceBetween"
+                  Class="mb-3">
+
+            <MudText Typo="Typo.h6" Style="font-weight:700;">
+                Ziyaret
+            </MudText>
+
+            <MudButton Variant="Variant.Outlined"
+                       Color="Color.Primary"
+                       Size="Size.Small"
+                       OnClick="ToggleEditVisit">
                 @(editVisit ? "İptal" : "Düzenle")
-            </button>
-        </div>
+            </MudButton>
+
+        </MudStack>
 
         @if (!editVisit)
         {
-            <div style="margin-top:.4rem;color:#444;font-size:.95rem;display:flex;gap:1.5rem;flex-wrap:wrap;">
-                <div>
-                    <strong>Hasta:</strong>
-                    @(string.IsNullOrWhiteSpace(bundle?.Ziyaret?.HastaAd)
-                                ? "-"
-                                : $"{bundle!.Ziyaret.HastaAd} {bundle!.Ziyaret.HastaSoyad}")
-                </div>
+            <MudGrid Spacing="2" Class="mb-2">
+                <MudItem xs="12" sm="4">
+                    <MudText><b>Hasta:</b> @(string.IsNullOrWhiteSpace(bundle?.Ziyaret?.HastaAd) ? "-" : $"{bundle!.Ziyaret.HastaAd} {bundle!.Ziyaret.HastaSoyad}")</MudText>
+                </MudItem>
 
-                <div>
-                    <strong>Doğum Tarihi:</strong>
-                    @(bundle!.Ziyaret.BirthDate?.ToString("dd.MM.yyyy") ?? "-")
-                </div>
+                <MudItem xs="12" sm="4">
+                    <MudText><b>Doğum Tarihi:</b> @(bundle!.Ziyaret.BirthDate?.ToString("dd.MM.yyyy") ?? "-")</MudText>
+                </MudItem>
 
-                <div>
-                    <strong>Cinsiyet:</strong>
-                    @SexText
-                </div>
-            </div>
-            <div style="margin-top:.4rem;color:#444;font-size:.95rem;display:flex;gap:1.5rem;flex-wrap:wrap;">
-                <div>
-                    <strong>Ziyaret Tarihi:</strong>
-                    @(bundle!.Ziyaret.Tarih?.ToString("dd.MM.yyyy") ?? "-")
-                </div>
+                <MudItem xs="12" sm="4">
+                    <MudText><b>Cinsiyet:</b> @SexText</MudText>
+                </MudItem>
 
-                <div>
-                    <strong>Ziyaret Yaşı:</strong>
-                    @AgeYagText(bundle!.Ziyaret.BirthDate, bundle!.Ziyaret.Tarih)
-                </div>
-            </div>
-            <div style="margin-top:.6rem;">
-                <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
-                    <div>
-                        <strong>Yakınmalar:</strong>
-                        @(string.IsNullOrWhiteSpace(bundle!.Ziyaret.YakinmalarZiyaret)
-                                        ? "-"
-                                        : bundle!.Ziyaret.YakinmalarZiyaret)
-                    </div>
+                <MudItem xs="12" sm="4">
+                    <MudText><b>Ziyaret Tarihi:</b> @(bundle!.Ziyaret.Tarih?.ToString("dd.MM.yyyy") ?? "-")</MudText>
+                </MudItem>
 
-                    <div>
-                        <strong>Notlar:</strong>
-                        @(string.IsNullOrWhiteSpace(bundle!.Ziyaret.Notlar)
-                                        ? "-"
-                                                : bundle!.Ziyaret.Notlar)
-                    </div>
-                </div>
-            </div>
+                <MudItem xs="12" sm="4">
+                    <MudText><b>Ziyaret Yaşı:</b> @AgeYagText(bundle!.Ziyaret.BirthDate, bundle!.Ziyaret.Tarih)</MudText>
+                </MudItem>
 
+                <MudItem xs="12">
+                    <MudText Typo="Typo.body2" Class="mt-2">
+                        <b>Yakınmalar:</b>
+                        @(string.IsNullOrWhiteSpace(bundle!.Ziyaret.YakinmalarZiyaret) ? "-" : bundle!.Ziyaret.YakinmalarZiyaret)
+                    </MudText>
+                </MudItem>
 
+                <MudItem xs="12">
+                    <MudText Typo="Typo.body2" Class="mt-1">
+                        <b>Notlar:</b>
+                        @(string.IsNullOrWhiteSpace(bundle!.Ziyaret.Notlar) ? "-" : bundle!.Ziyaret.Notlar)
+                    </MudText>
+                </MudItem>
+            </MudGrid>
         }
         else
         {
-            <div style="border:1px solid #eee;border-radius:10px;padding:.75rem;margin-top:.5rem;">
-                <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem;">
-                    <label>
-                        Ziyaret Tarihi
-                        <InputDate @bind-Value="visitEdit.Tarih" class="form-control" />
-                    </label>
-                    <label>
-                        Notlar
-                        <InputTextArea @bind-Value="visitEdit.Notlar" class="form-control" rows="2" />
-                    </label>
-                </div>
-                <div style="margin-top:.5rem;">
-                    <label>Yakınmalar</label>
-                    <InputTextArea @bind-Value="visitEdit.YakinmalarZiyaret" class="form-control" rows="3" />
-                </div>
+            <MudPaper Class="pa-3 mt-2" Elevation="0" Outlined="true">
+                <MudGrid Spacing="2">
+                    <MudItem xs="12" sm="6">
+                        <MudDatePicker Label="Ziyaret Tarihi"
+                                       Date="@visitEdit.Tarih"
+                                       DateChanged="@(d => visitEdit.Tarih = d)"
+                                       DateFormat="dd.MM.yyyy"
+                                       Variant="Variant.Outlined"
+                                       Margin="Margin.Dense"
+                                       Clearable="true" />
+                    </MudItem>
 
-                <div style="margin-top:.5rem;color:#555;font-size:.95rem;">
-                    <span><b>Doğum Tarihi:</b> @(bundle!.Ziyaret.BirthDate is { } bd ? $"{bd:dd.MM.yyyy}" : "-")</span>
-                    <span style="margin-left:1rem;"><b>Yaş:</b> @AgeYagText(bundle!.Ziyaret.BirthDate, bundle!.Ziyaret.Tarih)</span>
-                    <span style="margin-left:1rem;"><b>Cinsiyet:</b> @SexText</span>
-                </div>
-                <div style="margin-top:.5rem;">
-                    <button class="btn btn-success" @onclick="SaveVisitEdit">Kaydet</button>
-                    <button class="btn btn-secondary" style="margin-left:.5rem" @onclick="ToggleEditVisit">Vazgeç</button>
-                    <span style="color:#b00020;margin-left:.5rem;">@visitError</span>
-                </div>
-            </div>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="visitEdit.Notlar"
+                                      Label="Notlar"
+                                      Lines="2"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      FullWidth="true" />
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="visitEdit.YakinmalarZiyaret"
+                                      Label="Yakınmalar"
+                                      Lines="3"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      FullWidth="true" />
+                    </MudItem>
+                </MudGrid>
+
+                <MudStack Row="true"
+                          AlignItems="AlignItems.Center"
+                          Spacing="2"
+                          Class="mt-3">
+
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               OnClick="SaveVisitEdit">
+                        Kaydet
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Default"
+                               OnClick="ToggleEditVisit">
+                        Vazgeç
+                    </MudButton>
+
+                    @if (!string.IsNullOrWhiteSpace(visitError))
+                    {
+                        <MudText Color="Color.Error">@visitError</MudText>
+                    }
+
+                </MudStack>
+            </MudPaper>
         }
-    </section>
+    </MudPaper>
 
     <!-- ANTROPOMETRİ  -->
-    <section style="margin-bottom:1rem;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-            <h5 style="margin:0;">Antropometri</h5>
-            @if (bundle?.Antropometri is not null)
+    <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
+            <MudText Typo="Typo.h6" Style="font-weight:700;">Antropometri</MudText>
+
+            @if (bundle?.Antropometri is not null && LoginState.IsDoctor)
             {
-                <button class="btn btn-sm btn-outline-primary" @onclick="ToggleEditAnthro">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" OnClick="ToggleEditAnthro">
                     @(editAnthro ? "İptal" : "Düzenle")
-                </button>
+                </MudButton>
             }
-        </div>
+        </MudStack>
 
         @if (bundle?.Antropometri is null)
         {
-            <p style="color:#777;">Kayıt yok.</p>
+            <MudText Color="Color.Secondary">Kayıt yok.</MudText>
 
-            <div style="border:1px solid #eee;border-radius:10px;padding:.75rem;margin-top:.75rem;">
-                <h6 style="margin:0 0 .5rem 0;">Antropometri Ekle</h6>
+            @if (LoginState.IsDoctor)
+            {
+                <MudPaper Class="pa-3 mt-3" Elevation="0" Outlined="true">
+                    <MudText Typo="Typo.subtitle2" Class="mb-2">Antropometri Ekle</MudText>
 
-                <div style="
-                     display:grid;
-                     grid-template-columns:repeat(4,1fr);
-                     gap:.75rem;
-                     align-items:end;">
+                    <MudGrid Spacing="2">
+                        <MudItem xs="12" sm="3">
+                            <MudNumericField T="decimal?"
+                                             @bind-Value="antAdd.BoyCm"
+                                             Label="Boy (cm)"
+                                             Variant="Variant.Outlined"
+                                             Margin="Margin.Dense"
+                                             Step="0.01M" />
+                        </MudItem>
 
-                    <label style="display:flex;flex-direction:column;">
-                        Boy (cm)
-                        <input type="number" step="0.01" @bind="antAdd.BoyCm" />
-                    </label>
+                        <MudItem xs="12" sm="3">
+                            <MudNumericField T="decimal?"
+                                             @bind-Value="antAdd.KiloKg"
+                                             Label="Kilo (kg)"
+                                             Variant="Variant.Outlined"
+                                             Margin="Margin.Dense"
+                                             Step="0.01M" />
+                        </MudItem>
 
-                    <label style="display:flex;flex-direction:column;">
-                        Kilo (kg)
-                        <input type="number" step="0.01" @bind="antAdd.KiloKg" />
-                    </label>
+                        <MudItem xs="12" sm="3">
+                            <MudNumericField T="decimal?"
+                                             @bind-Value="antAdd.BasCevresiCm"
+                                             Label="Baş çev. (cm)"
+                                             Variant="Variant.Outlined"
+                                             Margin="Margin.Dense"
+                                             Step="0.01M" />
+                        </MudItem>
 
-                    <label style="display:flex;flex-direction:column;">
-                        Baş çev. (cm)
-                        <input type="number" step="0.01" @bind="antAdd.BasCevresiCm" />
-                    </label>
+                        <MudItem xs="12" sm="3">
+                            <MudNumericField T="decimal?"
+                                             @bind-Value="antAdd.OturmaBoyuCm"
+                                             Label="Oturma boyu (cm)"
+                                             Variant="Variant.Outlined"
+                                             Margin="Margin.Dense"
+                                             Step="0.01M" />
+                        </MudItem>
+                    </MudGrid>
 
-                    <label style="display:flex;flex-direction:column;">
-                        Oturma boyu (cm)
-                        <input type="number" step="0.01" @bind="antAdd.OturmaBoyuCm" />
-                    </label>
-                </div>
-
-                <div style="margin-top:.5rem;">
-                    <button class="btn btn-primary" @onclick="SaveAnthro">Kaydet</button>
-                    <span style="color:#b00020;margin-left:.5rem;">@antError</span>
-                </div>
-            </div>
+                    <MudStack Row="true" Spacing="2" Class="mt-3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAnthro">Kaydet</MudButton>
+                        <MudText Color="Color.Error">@antError</MudText>
+                    </MudStack>
+                </MudPaper>
+            }
         }
-
         else
         {
             @if (!editAnthro)
             {
-                <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.5rem;">
-                    <div><b>Boy (cm):</b> @bundle.Antropometri.BoyCm</div>
-                    <div><b>Kilo (kg):</b> @bundle.Antropometri.KiloKg</div>
-                    <div><b>BKI:</b> @bundle.Antropometri.BKI</div>
-                    <div><b>Baş çev. (cm):</b> @bundle.Antropometri.BasCevresiCm</div>
-                    <div><b>Boy SDS:</b> @bundle.Antropometri.BoySDS</div>
-                    <div><b>Kilo SDS:</b> @bundle.Antropometri.KiloSDS</div>
-                    <div><b>BKI SDS:</b> @bundle.Antropometri.BKISDS</div>
-                    <div><b>Baş çev. SDS:</b> @bundle.Antropometri.BasCevresiSDS</div>
-                </div>
+                <MudGrid Spacing="2">
+                    <MudItem xs="12" sm="3"><MudText><b>Boy (cm):</b> @bundle.Antropometri.BoyCm</MudText></MudItem>
+                    <MudItem xs="12" sm="3"><MudText><b>Kilo (kg):</b> @bundle.Antropometri.KiloKg</MudText></MudItem>
+                    <MudItem xs="12" sm="3"><MudText><b>BKI:</b> @bundle.Antropometri.BKI</MudText></MudItem>
+                    <MudItem xs="12" sm="3"><MudText><b>Baş çev. (cm):</b> @bundle.Antropometri.BasCevresiCm</MudText></MudItem>
+
+                    <MudItem xs="12" sm="3"><MudText><b>Boy SDS:</b> @bundle.Antropometri.BoySDS</MudText></MudItem>
+                    <MudItem xs="12" sm="3"><MudText><b>Kilo SDS:</b> @bundle.Antropometri.KiloSDS</MudText></MudItem>
+                    <MudItem xs="12" sm="3"><MudText><b>BKI SDS:</b> @bundle.Antropometri.BKISDS</MudText></MudItem>
+                    <MudItem xs="12" sm="3"><MudText><b>Baş çev. SDS:</b> @bundle.Antropometri.BasCevresiSDS</MudText></MudItem>
+                </MudGrid>
             }
             else
             {
-                <div style="border:1px solid #eee;border-radius:10px;padding:.75rem;">
-                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;">
-                        <label>Boy (cm)<input type="number" step="0.1" @bind="antEdit.BoyCm" /></label>
-                        <label>Kilo (kg)<input type="number" step="0.1" @bind="antEdit.KiloKg" /></label>
-                        <label>Baş çev. (cm)<input type="number" step="0.1" @bind="antEdit.BasCevresiCm" /></label>
-                        <label>Oturma boyu (cm)<input type="number" step="0.1" @bind="antEdit.OturmaBoyuCm" /></label>
-                    </div>
-                    <div style="margin-top:.5rem;">
-                        <button class="btn btn-success" @onclick="SaveAnthroEdit">Kaydet</button>
-                        <button class="btn btn-secondary" style="margin-left:.5rem;" @onclick="ToggleEditAnthro">Vazgeç</button>
-                        <span style="color:#b00020;margin-left:.5rem;">@antError</span>
-                    </div>
-                </div>
-            }
+                <MudPaper Class="pa-3 mt-2" Elevation="0" Outlined="true">
+                    <MudGrid Spacing="2">
+                        <MudItem xs="12" sm="3">
+                            <MudNumericField T="decimal?"
+                                             @bind-Value="antEdit.BoyCm"
+                                             Label="Boy (cm)"
+                                             Variant="Variant.Outlined"
+                                             Step="0.1M" />
+                        </MudItem>
+                        <MudItem xs="12" sm="3">
+                            <MudNumericField T="decimal?"
+                                             @bind-Value="antEdit.KiloKg"
+                                             Label="Kilo (kg)"
+                                             Variant="Variant.Outlined"
+                                             Step="0.1M" />
+                        </MudItem>
+                        <MudItem xs="12" sm="3">
+                            <MudNumericField T="decimal?"
+                                             @bind-Value="antEdit.BasCevresiCm"
+                                             Label="Baş çev. (cm)"
+                                             Variant="Variant.Outlined"
+                                             Step="0.1M" />
+                        </MudItem>
+                        <MudItem xs="12" sm="3">
+                            <MudNumericField T="decimal?"
+                                             @bind-Value="antEdit.OturmaBoyuCm"
+                                             Label="Oturma boyu (cm)"
+                                             Variant="Variant.Outlined"
+                                             Step="0.1M" />
+                        </MudItem>
+                    </MudGrid>
 
+                    <MudStack Row="true" Spacing="2" Class="mt-3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="SaveAnthroEdit">Kaydet</MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="ToggleEditAnthro">Vazgeç</MudButton>
+                        <MudText Color="Color.Error">@antError</MudText>
+                    </MudStack>
+                </MudPaper>
+            }
         }
-    </section>
+    </MudPaper>
 
     <!-- PUBERTE FİZİK -->
-    <section style="margin-bottom:1rem;border-top:1px solid #eee;padding-top:.5rem;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-            <h5 style="margin:0;">Puberte Fizik</h5>
-            @if (bundle?.Puberte is not null)
+    <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
+            <MudText Typo="Typo.h6" Style="font-weight:700;">Puberte Fizik</MudText>
+            @if (bundle?.Puberte is not null && LoginState.IsDoctor)
             {
-                <button class="btn btn-sm btn-outline-primary" @onclick="ToggleEditPub">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" OnClick="ToggleEditPub">
                     @(editPub ? "İptal" : "Düzenle")
-                </button>
+                </MudButton>
             }
-        </div>
+        </MudStack>
 
         @if (bundle?.Puberte is null)
         {
-            <p style="color:#777;">Kayıt yok.</p>
-            <div class="form-card">
-                <div class="form-grid">
-                    <div class="form-field">
-                        <label class="form-label">Puberte Notu</label>
-                        <textarea class="input-textarea" rows="4"
-                                  @bind="pubCreate.PuberteNotu"
-                                  placeholder="Örn: Tanner evresi…"></textarea>
-                    </div>
-                    <div class="form-field">
-                        <label class="form-label">Patolojik Fizik</label>
-                        <textarea class="input-textarea" rows="4"
-                                  @bind="pubCreate.PatolojikFizik"
-                                  placeholder="Örn: asimetri…"></textarea>
-                    </div>
-                </div>
-                <button class="btn-primary" @onclick="SaveAddPub">Kaydet</button>
-                <span class="err">@pubError</span>
-            </div>
+            <MudText Color="Color.Secondary">Kayıt yok.</MudText>
+
+            @if (LoginState.IsDoctor)
+            {
+                <MudPaper Class="pa-3 mt-3" Elevation="0" Outlined="true">
+                    <MudGrid Spacing="2">
+                        <MudItem xs="12">
+                            <MudTextField T="string" @bind-Value="pubCreate.PuberteNotu" Label="Puberte Notu" Lines="4" Variant="Variant.Outlined" FullWidth="true" />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudTextField T="string" @bind-Value="pubCreate.PatolojikFizik" Label="Patolojik Fizik" Lines="4" Variant="Variant.Outlined" FullWidth="true" />
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudStack Row="true" Spacing="2" Class="mt-3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAddPub">Kaydet</MudButton>
+                        <MudText Color="Color.Error">@pubError</MudText>
+                    </MudStack>
+                </MudPaper>
+            }
         }
         else
         {
             @if (!editPub)
             {
-                <div class="read-card">
-                    <div><b>Puberte Notu:</b> @bundle.Puberte.PuberteNotu</div>
-                    <div><b>Patolojik Fizik:</b> @bundle.Puberte.PatolojikFizik</div>
-                </div>
+                <MudGrid Spacing="2">
+                    <MudItem xs="12"><MudText><b>Puberte Notu:</b> @bundle.Puberte.PuberteNotu</MudText></MudItem>
+                    <MudItem xs="12"><MudText><b>Patolojik Fizik:</b> @bundle.Puberte.PatolojikFizik</MudText></MudItem>
+                </MudGrid>
             }
             else
             {
-                <div class="form-card">
-                    <div class="form-grid">
-                        <div class="form-field">
-                            <label class="form-label">Puberte Notu</label>
-                            <textarea class="input-textarea" rows="4"
-                                      @bind="pubEdit.PuberteNotu"></textarea>
-                        </div>
-                        <div class="form-field">
-                            <label class="form-label">Patolojik Fizik</label>
-                            <textarea class="input-textarea" rows="4"
-                                      @bind="pubEdit.PatolojikFizik"></textarea>
-                        </div>
-                    </div>
+                <MudPaper Class="pa-3 mt-2" Elevation="0" Outlined="true">
+                    <MudGrid Spacing="2">
+                        <MudItem xs="12">
+                            <MudTextField T="string" @bind-Value="pubEdit.PuberteNotu" Label="Puberte Notu" Lines="4" Variant="Variant.Outlined" FullWidth="true" />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudTextField T="string" @bind-Value="pubEdit.PatolojikFizik" Label="Patolojik Fizik" Lines="4" Variant="Variant.Outlined" FullWidth="true" />
+                        </MudItem>
+                    </MudGrid>
 
-                    <button class="btn-primary" @onclick="SaveEditPub">Kaydet</button>
-                    <button class="btn-secondary" style="margin-left:.5rem;" @onclick="ToggleEditPub">Vazgeç</button>
-                    <span class="err">@pubError</span>
-                </div>
+                    <MudStack Row="true" Spacing="2" Class="mt-3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveEditPub">Kaydet</MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="ToggleEditPub">Vazgeç</MudButton>
+                        <MudText Color="Color.Error">@pubError</MudText>
+                    </MudStack>
+                </MudPaper>
             }
         }
-    </section>
-
+    </MudPaper>
 
     <!-- YORUM / PLAN -->
-    <section style="margin-bottom:1rem;border-top:1px solid #eee;padding-top:.5rem;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-            <h5 style="margin:0;">Yorum / Plan</h5>
-            @if (bundle?.YorumPlan is not null)
+    <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
+            <MudText Typo="Typo.h6" Style="font-weight:700;">Yorum / Plan</MudText>
+            @if (bundle?.YorumPlan is not null && LoginState.IsDoctor)
             {
-                <button class="btn btn-sm btn-outline-primary" @onclick="ToggleEditYp">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" OnClick="ToggleEditYp">
                     @(editYp ? "İptal" : "Düzenle")
-                </button>
+                </MudButton>
             }
-        </div>
+        </MudStack>
 
         @if (bundle?.YorumPlan is null)
         {
-            <p style="color:#777;">Kayıt yok.</p>
-            <div class="form-card">
-                <div class="form-grid">
-                    <div class="form-field">
-                        <label class="form-label">Tedavi/Beslenme/Spor</label>
-                        <textarea class="input-textarea" rows="4"
-                                  @bind="ypCreate.TedaviBeslenmeSpor"
-                                  placeholder="Tedavi, beslenme, egzersiz önerileri..."></textarea>
-                    </div>
-                    <div class="form-field">
-                        <label class="form-label">Notlar</label>
-                        <textarea class="input-textarea" rows="4"
-                                  @bind="ypCreate.YorumNotlar"
-                                  placeholder="Ek yorumlar veya açıklamalar..."></textarea>
-                    </div>
-                </div>
-                <button class="btn-primary" @onclick="SaveAddYp">Kaydet</button>
-                <span class="err">@ypError</span>
-            </div>
+            <MudText Color="Color.Secondary">Kayıt yok.</MudText>
+
+            @if (LoginState.IsDoctor)
+            {
+                <MudPaper Class="pa-3 mt-3" Elevation="0" Outlined="true">
+                    <MudGrid Spacing="2">
+                        <MudItem xs="12">
+                            <MudTextField T="string" @bind-Value="ypCreate.TedaviBeslenmeSpor" Label="Tedavi/Beslenme/Spor" Lines="4" Variant="Variant.Outlined" FullWidth="true" />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudTextField T="string" @bind-Value="ypCreate.YorumNotlar" Label="Notlar" Lines="4" Variant="Variant.Outlined" FullWidth="true" />
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudStack Row="true" Spacing="2" Class="mt-3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAddYp">Kaydet</MudButton>
+                        <MudText Color="Color.Error">@ypError</MudText>
+                    </MudStack>
+                </MudPaper>
+            }
         }
         else
         {
             @if (!editYp)
             {
-                <div class="read-card">
-                    <div><b>Tedavi/Beslenme/Spor:</b> @bundle.YorumPlan.TedaviBeslenmeSpor</div>
-                    <div><b>Notlar:</b> @bundle.YorumPlan.YorumNotlar</div>
-                    <div><b>Oluşturma:</b> @(bundle.YorumPlan.OlusturmaTarihi is { } yt ? $"{yt:dd.MM.yyyy HH:mm}" : "-")</div>
-                </div>
+                <MudGrid Spacing="2">
+                    <MudItem xs="12"><MudText><b>Tedavi/Beslenme/Spor:</b> @bundle.YorumPlan.TedaviBeslenmeSpor</MudText></MudItem>
+                    <MudItem xs="12"><MudText><b>Notlar:</b> @bundle.YorumPlan.YorumNotlar</MudText></MudItem>
+                    <MudItem xs="12"><MudText><b>Oluşturma:</b> @(bundle.YorumPlan.OlusturmaTarihi is { } yt ? $"{yt:dd.MM.yyyy HH:mm}" : "-")</MudText></MudItem>
+                </MudGrid>
             }
             else
             {
-                <div class="form-card">
-                    <div class="form-grid">
-                        <div class="form-field">
-                            <label class="form-label">Tedavi/Beslenme/Spor</label>
-                            <textarea class="input-textarea" rows="4"
-                                      @bind="ypEdit.TedaviBeslenmeSpor"></textarea>
-                        </div>
-                        <div class="form-field">
-                            <label class="form-label">Notlar</label>
-                            <textarea class="input-textarea" rows="4"
-                                      @bind="ypEdit.YorumNotlar"></textarea>
-                        </div>
-                    </div>
+                <MudPaper Class="pa-3 mt-2" Elevation="0" Outlined="true">
+                    <MudGrid Spacing="2">
+                        <MudItem xs="12">
+                            <MudTextField T="string" @bind-Value="ypEdit.TedaviBeslenmeSpor" Label="Tedavi/Beslenme/Spor" Lines="4" Variant="Variant.Outlined" FullWidth="true" />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudTextField T="string" @bind-Value="ypEdit.YorumNotlar" Label="Notlar" Lines="4" Variant="Variant.Outlined" FullWidth="true" />
+                        </MudItem>
+                    </MudGrid>
 
-                    <button class="btn-primary" @onclick="SaveEditYp">Kaydet</button>
-                    <button class="btn-secondary" style="margin-left:.5rem;" @onclick="ToggleEditYp">Vazgeç</button>
-                    <span class="err">@ypError</span>
-                </div>
+                    <MudStack Row="true" Spacing="2" Class="mt-3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveEditYp">Kaydet</MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="ToggleEditYp">Vazgeç</MudButton>
+                        <MudText Color="Color.Error">@ypError</MudText>
+                    </MudStack>
+                </MudPaper>
             }
         }
-    </section>
+    </MudPaper>
+
     <!--  KLİNİK ÖZET  -->
-    <section style="margin-bottom:1rem;border-top:1px solid #eee;padding-top:.5rem;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-            <h5 style="margin:0;">Klinik Özet</h5>
-            @if (bundle?.Ozet is not null)
+    <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
+            <MudText Typo="Typo.h6" Style="font-weight:700;">Klinik Özet</MudText>
+            @if (bundle?.Ozet is not null && LoginState.IsDoctor)
             {
-                <button class="btn btn-sm btn-outline-primary" @onclick="ToggleEditOzet">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" OnClick="ToggleEditOzet">
                     @(editOzet ? "İptal" : "Düzenle")
-                </button>
+                </MudButton>
             }
-        </div>
+        </MudStack>
 
         @if (bundle?.Ozet is null)
         {
-            <p style="color:#777;">Kayıt yok.</p>
+            <MudText Color="Color.Secondary">Kayıt yok.</MudText>
 
-            <div style="border:1px solid #eee;border-radius:10px;padding:.75rem;margin-top:.5rem;">
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;">
-                    <label>Kulaç (cm)<input type="number" step="0.1" @bind="ozetCreate.KulacCm" /></label>
-                    <label>Hedef Boy (cm)<input type="number" step="0.1" @bind="ozetCreate.HedefBoyCm" /></label>
-                    <label>Boy’a Uyan Tartı<input type="text" @bind="ozetCreate.BoyaUyanTarti" /></label>
-                </div>
-                <div style="margin-top:.5rem;">
-                    <button class="btn btn-primary" @onclick="SaveAddOzet">Kaydet</button>
-                    <span style="color:#b00020;margin-left:.5rem;">@ozetError</span>
-                </div>
-            </div>
+            @if (LoginState.IsDoctor)
+            {
+                <MudPaper Class="pa-3 mt-3" Elevation="0" Outlined="true">
+                    <MudGrid Spacing="2">
+                        <MudItem xs="12" sm="4">
+                            <MudNumericField T="decimal?"
+                                             @bind-Value="ozetCreate.KulacCm"
+                                             Label="Kulaç (cm)"
+                                             Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudNumericField T="decimal?"
+                                             @bind-Value="ozetCreate.HedefBoyCm"
+                                             Label="Hedef Boy (cm)"
+                                             Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudTextField T="string" @bind-Value="ozetCreate.BoyaUyanTarti" Label="Boy’a Uyan Tartı" Variant="Variant.Outlined" />
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudStack Row="true" Spacing="2" Class="mt-3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAddOzet">Kaydet</MudButton>
+                        <MudText Color="Color.Error">@ozetError</MudText>
+                    </MudStack>
+                </MudPaper>
+            }
         }
         else
         {
             @if (!editOzet)
             {
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;">
-                    <div><b>Kulaç (cm):</b> @bundle.Ozet.KulacCm</div>
-                    <div><b>Hedef Boy (cm):</b> @bundle.Ozet.HedefBoyCm</div>
-                    <div><b>Boy’a Uyan Tartı:</b> @bundle.Ozet.BoyaUyanTarti</div>
-                </div>
+                <MudGrid Spacing="2">
+                    <MudItem xs="12" sm="4"><MudText><b>Kulaç (cm):</b> @bundle.Ozet.KulacCm</MudText></MudItem>
+                    <MudItem xs="12" sm="4"><MudText><b>Hedef Boy (cm):</b> @bundle.Ozet.HedefBoyCm</MudText></MudItem>
+                    <MudItem xs="12" sm="4"><MudText><b>Boy’a Uyan Tartı:</b> @bundle.Ozet.BoyaUyanTarti</MudText></MudItem>
+                </MudGrid>
             }
             else
             {
-                <div style="border:1px solid #eee;border-radius:10px;padding:.75rem;">
-                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;">
-                        <label>Kulaç (cm)<input type="number" step="0.1" @bind="ozetEdit.KulacCm" /></label>
-                        <label>Hedef Boy (cm)<input type="number" step="0.1" @bind="ozetEdit.HedefBoyCm" /></label>
-                        <label>Boy’a Uyan Tartı<input type="text" @bind="ozetEdit.BoyaUyanTarti" /></label>
-                    </div>
-                    <div style="margin-top:.5rem;">
-                        <button class="btn btn-success" @onclick="SaveEditOzet">Kaydet</button>
-                        <button class="btn btn-secondary" style="margin-left:.5rem;" @onclick="ToggleEditOzet">Vazgeç</button>
-                        <span style="color:#b00020;margin-left:.5rem;">@ozetError</span>
-                    </div>
-                </div>
+                <MudPaper Class="pa-3 mt-2" Elevation="0" Outlined="true">
+                    <MudGrid Spacing="2">
+                        <MudItem xs="12" sm="4">
+                            <MudNumericField T="decimal?"
+                                             @bind-Value="ozetEdit.KulacCm"
+                                             Label="Kulaç (cm)"
+                                             Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudNumericField T="decimal?"
+                                             @bind-Value="ozetEdit.HedefBoyCm"
+                                             Label="Hedef Boy (cm)"
+                                             Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudTextField T="string" @bind-Value="ozetEdit.BoyaUyanTarti" Label="Boy’a Uyan Tartı" Variant="Variant.Outlined" />
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudStack Row="true" Spacing="2" Class="mt-3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="SaveEditOzet">Kaydet</MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="ToggleEditOzet">Vazgeç</MudButton>
+                        <MudText Color="Color.Error">@ozetError</MudText>
+                    </MudStack>
+                </MudPaper>
             }
         }
-    </section>
+    </MudPaper>
 
-    <section style="margin-bottom:1rem;border-top:1px solid #eee;padding-top:.5rem;">
-        <button class="btn btn-outline-primary" @onclick="() => OpenChartPopup(ziyaretId)">
-            Grafik Göster
-        </button>
-    </section>
-    <div>
-        <button class="btn btn-secondary"
-                @onclick="OpenLab">
-            Laboratuvar Sonuçları
-        </button>
-
-    </div>
+    <MudStack Row="true" Spacing="2" Class="mb-4">
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => OpenChartPopup(ziyaretId)">Grafik Göster</MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="OpenLab">Laboratuvar Sonuçları</MudButton>
+    </MudStack>
 }
 @code {
     [Parameter] public int ziyaretId { get; set; }
@@ -474,6 +574,12 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
+        if (!LoginState.IsLoggedIn)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
         await LoadVisit();
     }
 
@@ -599,6 +705,12 @@ else
     void ToggleEditPub() { pubError = null; editPub = !editPub; }
     async Task SaveAddPub()
     {
+        if (!LoginState.IsDoctor)
+        {
+            pubError = "Bu işlem için doktor yetkisi gerekir.";
+            return;
+        }
+
         try
         {
             pubError = null;
@@ -633,6 +745,11 @@ else
     void ToggleEditYp() { ypError = null; editYp = !editYp; }
     async Task SaveAddYp()
     {
+        if (!LoginState.IsDoctor)
+        {
+            ypError = "Bu işlem için doktor yetkisi gerekir.";
+            return;
+        }
         try
         {
             ypError = null;
@@ -702,6 +819,11 @@ else
 
     async Task SaveAddOzet()
     {
+        if (!LoginState.IsDoctor)
+        {
+            ozetError = "Bu işlem için doktor yetkisi gerekir.";
+            return;
+        }
         try
         {
             ozetError = null;
@@ -773,10 +895,9 @@ else
     {
         Nav.NavigateTo($"/ziyaretler/{ziyaretId}/lab?popup=1");
     }
-
-
 }
 <style>
+    /* kept original helper styles for safety; visual layout now uses MudBlazor components */
     .section-header {
         display: flex;
         justify-content: space-between;
@@ -804,73 +925,7 @@ else
         background: #fff;
     }
 
-    .form-grid {
-        display: grid;
-        grid-template-columns: repeat(12,minmax(0,1fr));
-        gap: .75rem;
-        align-items: start;
-        margin: .5rem 0 .75rem;
-    }
-
-    .form-field {
-        grid-column: span 6;
-    }
-    @@media (max-width: 992px) {
-        .form-field
-
-    {
-        grid-column: span 12;
-    }
-
-    }
-
-    .form-label {
-        display: block;
-        font-weight: 600;
-        color: #444;
-        margin-bottom: .25rem;
-    }
-
-    .input-text, .input-textarea {
-        width: 100%;
-        padding: 10px 12px;
-        border: 1px solid #cfd4dc;
-        border-radius: 8px;
-        background: #fff;
-        font-size: .95rem;
-        color: #1f2937;
-        transition: border-color .2s, box-shadow .2s;
-    }
-
-        .input-text:focus, .input-textarea:focus {
-            outline: none;
-            border-color: #1976d2;
-            box-shadow: 0 0 0 3px rgba(25,118,210,.15);
-        }
-
-    .input-textarea {
-        min-height: 96px;
-        resize: vertical;
-    }
-
-    .btn-primary {
-        background: #1976d2;
-        color: #fff;
-        border: none;
-        padding: 8px 14px;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color .2s, transform .02s;
-    }
-
-        .btn-primary:hover {
-            background: #145da3;
-        }
-
-        .btn-primary:active {
-            transform: translateY(1px);
-        }
+        /* rest unchanged */
 </style>
 
 

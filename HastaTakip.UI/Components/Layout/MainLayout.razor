@@ -1,5 +1,7 @@
 ﻿@inherits LayoutComponentBase
-
+@inject HastaTakip.UI.Services.LoginStateService LoginState
+@inject NavigationManager Nav
+@implements IDisposable
 
 <div class="page">
     <div class="sidebar">
@@ -8,7 +10,6 @@
 
     <main>
         <div class="top-row">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
         </div>
 
         <article class="content">
@@ -23,9 +24,26 @@
     <a class="dismiss">🗙</a>
 </div>
 
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="js/growth.js?v=2"></script>
 <script>
     console.log("chart?", typeof Chart, "growth?", typeof window.growthChart);
 </script>
+
+@code {
+    protected override void OnInitialized()
+    {
+        LoginState.OnChange += StateHasChanged;
+    }
+
+    void Logout()
+    {
+        LoginState.Logout();
+        Nav.NavigateTo("/login");
+    }
+
+    public void Dispose()
+    {
+        LoginState.OnChange -= StateHasChanged;
+    }
+}

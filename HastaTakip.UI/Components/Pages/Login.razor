@@ -1,0 +1,71 @@
+﻿@page "/login"
+@using HastaTakip.UI.Dtos
+@inject HastaTakip.UI.Services.HastaApi Api
+@inject HastaTakip.UI.Services.LoginStateService LoginState
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<MudGrid Justify="Justify.Center" align-items="AlignItems.Center" Style="min-height:70vh;">
+    <MudItem xs="12" sm="8" md="4">
+        <MudPaper Elevation="4" Class="pa-6">
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.h5" Align="Align.Center">Hasta Takip</MudText>
+                <MudText Typo="Typo.subtitle2" Align="Align.Center" Color="Color.Secondary">Giriş Yap</MudText>
+
+                @if (!string.IsNullOrWhiteSpace(error))
+                {
+                    <MudAlert Severity="Severity.Error" Elevation="0" Dense="true">@error</MudAlert>
+                }
+
+                <MudTextField T="string"
+                              Label="Kullanıcı Adı"
+                              @bind-Value="username"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Person" />
+
+                <MudTextField T="string"
+                              Label="Şifre"
+                              @bind-Value="password"
+                              Variant="Variant.Outlined"
+                              InputType="InputType.Password"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Lock" />
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           FullWidth="true"
+                           OnClick="DoLogin">
+                    Giriş Yap
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    string username = "";
+    string password = "";
+    string? error;
+
+    async Task DoLogin()
+    {
+        error = null;
+
+        var result = await Api.LoginAsync(new LoginDto
+        {
+            Username = username,
+            Password = password
+        });
+
+        if (result is null || !result.Success)
+        {
+            error = "Kullanıcı adı veya şifre hatalı.";
+            return;
+        }
+
+        LoginState.Login(result.Username ?? username, result.Role ?? "");
+
+        Nav.NavigateTo("/hastalar");
+    }
+}

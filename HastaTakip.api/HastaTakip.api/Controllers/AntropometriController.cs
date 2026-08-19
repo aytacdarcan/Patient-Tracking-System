@@ -1,10 +1,11 @@
-﻿using System.Linq;
-using HastaTakip.Api.Data;
+﻿using HastaTakip.Api.Data;
 using HastaTakip.Api.Dtos;
 using HastaTakip.Api.Models;
+using HastaTakip.Api.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 
 namespace HastaTakip.Api.Controllers;
@@ -14,12 +15,12 @@ namespace HastaTakip.Api.Controllers;
 public class AntropometrilerController : ControllerBase
 {
     private readonly HastaDbContext _db;
-    private readonly IGrowthLmsService _growth;
+    private readonly CeddService _cedd;
 
-    public AntropometrilerController(HastaDbContext db, IGrowthLmsService growth)
+    public AntropometrilerController(HastaDbContext db, CeddService cedd)
     {
         _db = db;
-        _growth = growth;
+        _cedd = cedd;
     }
 
     // GET /api/Antropometriler/by-hasta/2
@@ -261,6 +262,50 @@ public class AntropometrilerController : ControllerBase
         };
         return Ok(dto);
     }
+    // POST /api/Antropometriler/by-visit/{ziyaretId}
+    [HttpPost("by-visit/{ziyaretId:int}")]
+    public async Task<ActionResult<int>> CreateForVisit(int ziyaretId, [FromBody] AntropometriCreateDto dto)
+    {
+        var zInfo = await _db.Ziyaretler
+            .AsNoTracking()
+            .Where(x => x.ZiyaretID == ziyaretId)
+            .Select(x => new { x.ZiyaretID, x.Tarih, x.Hasta.BirthDate })
+            .FirstOrDefaultAsync();
+
+        if (zInfo is null) return NotFound("Ziyaret bulunamadı.");
+
+    
+        var exists = await _db.Antropometriler.AnyAsync(a => a.ZiyaretID == ziyaretId);
+        if (exists) return Conflict("Bu ziyaret için zaten antropometri kaydı var.");
+
+        int? yasAy = null;
+        if (zInfo.BirthDate != default && zInfo.Tarih != default)
+        {
+            var days = (zInfo.Tarih.Date - zInfo.BirthDate.Date).TotalDays;
+            yasAy = (int)Math.Round(days / 30.4375, MidpointRounding.AwayFromZero);
+        }
+
+        var ent = new Antropometri
+        {
+            ZiyaretID = ziyaretId,
+            YasAy = yasAy,                
+            BoyCm = dto.BoyCm,
+            KiloKg = dto.KiloKg,
+            BasCevresiCm = dto.BasCevresiCm,
+            OturmaBoyuCm = dto.OturmaBoyuCm
+        };
+
+        _db.Antropometriler.Add(ent);
+        await _db.SaveChangesAsync();   
+
+        await FillSdsAsync(ent);
+
+        await _db.Entry(ent).ReloadAsync();
+
+        return Ok(ent.AntropometriID);
+
+
+    }
 
     // DELETE /api/antropometriler/{id}
     [HttpDelete("{id:int}")]
@@ -286,69 +331,41 @@ public class AntropometrilerController : ControllerBase
         await _db.Entry(ent).Reference(a => a.Ziyaret).LoadAsync();
         await _db.Entry(ent.Ziyaret).Reference(z => z.Hasta).LoadAsync();
 
-        var sex = ent.Ziyaret.Hasta.Cinsiyet; // 'E'/'K'
-        ent.YasAy ??= CalcAgeMonths(ent.Ziyaret.Hasta.BirthDate, ent.Ziyaret.Tarih);
+        var hasta = ent.Ziyaret.Hasta;
 
-        var yasAy = (decimal)ent.YasAy.Value;
+        ent.YasAy ??= CalcAgeMonths(
+            hasta.BirthDate,
+            ent.Ziyaret.Tarih);
 
-        ent.BoySDS = await _growth.ComputeZAsync("BoyCm", sex, yasAy, ent.BoyCm);
-        ent.KiloSDS = await _growth.ComputeZAsync("KiloKg", sex, yasAy, ent.KiloKg);
-        ent.BasCevresiSDS = await _growth.ComputeZAsync("BasCevresiCm", sex, yasAy, ent.BasCevresiCm);
+        if (!ent.BoyCm.HasValue || !ent.KiloKg.HasValue)
+            return;
 
-        await _db.SaveChangesAsync();       // BKI computed ise bekleyelim
-        await _db.Entry(ent).ReloadAsync(); // BKI dolsun
+        var sex = hasta.Cinsiyet == "E"
+            ? "male"
+            : "female";
 
-        ent.BKISDS = await _growth.ComputeZAsync("BKI", sex, yasAy, ent.BKI);
+        var ageYears = ent.YasAy.Value / 12.0;
+
+        var results = await _cedd.CalculateResultsAsync(
+            sex,
+            ageYears,
+            Convert.ToDouble(ent.BoyCm.Value),
+            Convert.ToDouble(ent.KiloKg.Value),
+            ent.BasCevresiCm.HasValue
+            ? Convert.ToDouble(ent.BasCevresiCm.Value)
+            : null
+        );
+
+        ent.BoySDS = (decimal?)results.FirstOrDefault(x => x.Label == "Height")?.Sds;
+
+        ent.KiloSDS = (decimal?)results.FirstOrDefault(x => x.Label == "Weight")?.Sds;
+
+        ent.BKISDS = (decimal?)results.FirstOrDefault(x => x.Label == "BMI")?.Sds;
+
+        ent.BasCevresiSDS = (decimal?)results.FirstOrDefault(x => x.Label == "Head Circumference")?.Sds;
         await _db.SaveChangesAsync();
     }
 
-    // POST /api/Antropometriler/by-visit/{ziyaretId}
-    [HttpPost("by-visit/{ziyaretId:int}")]
-    public async Task<ActionResult<int>> CreateForVisit(int ziyaretId, [FromBody] AntropometriCreateDto dto)
-    {
-        var zInfo = await _db.Ziyaretler
-            .AsNoTracking()
-            .Where(x => x.ZiyaretID == ziyaretId)
-            .Select(x => new { x.ZiyaretID, x.Tarih, x.Hasta.BirthDate })
-            .FirstOrDefaultAsync();
-
-        if (zInfo is null) return NotFound("Ziyaret bulunamadı.");
-
-        // Ziyaret başına tek kayıt kuralı
-        var exists = await _db.Antropometriler.AnyAsync(a => a.ZiyaretID == ziyaretId);
-        if (exists) return Conflict("Bu ziyaret için zaten antropometri kaydı var.");
-
-        // YasAy zorunluysa (DB'de NOT NULL), burada hesaplayalım
-        int? yasAy = null;
-        if (zInfo.BirthDate != default && zInfo.Tarih != default)
-        {
-            var days = (zInfo.Tarih.Date - zInfo.BirthDate.Date).TotalDays;
-            yasAy = (int)Math.Round(days / 30.4375, MidpointRounding.AwayFromZero);
-        }
-
-        var ent = new Antropometri
-        {
-            ZiyaretID = ziyaretId,
-            YasAy = yasAy,                // 🔴 ÖNEMLİ: NULL olmamalıysa burada set edilmelidir
-            BoyCm = dto.BoyCm,
-            KiloKg = dto.KiloKg,
-            BasCevresiCm = dto.BasCevresiCm,
-            OturmaBoyuCm = dto.OturmaBoyuCm
-            // BKI set ETME — SQL tetikleyici/SP hesaplayacak
-        };
-
-        _db.Antropometriler.Add(ent);
-        await _db.SaveChangesAsync();   // 1️⃣ önce kayıt oluşsun (ID lazım)
-
-        // 🔥 SDS HESAPLA VE DB’YE YAZ
-        await FillSdsAsync(ent);
-
-        // (opsiyonel ama önerilir)
-        await _db.Entry(ent).ReloadAsync();
-
-        return Ok(ent.AntropometriID);
-
-
-    }
+    
 
 }

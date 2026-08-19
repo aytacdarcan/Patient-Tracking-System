@@ -1,0 +1,154 @@
+﻿.pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-top: .75rem;
+}
+
+.badge {
+    display: inline-block;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    padding: .35rem .7rem;
+    font-size: .9rem;
+    color: #0f172a;
+    font-weight: 500;
+}
+
+.patient-title {
+    font-weight: 800;
+    font-size: 1.35rem;
+    color: #0f172a;
+}
+
+.patient-hero {
+    margin-bottom: 1rem;
+}
+
+    .patient-hero .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        background: #f8fafc;
+        border-radius: 14px;
+        padding: 16px;
+        border: 1px solid #eef2f7;
+    }
+
+
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: .75rem;
+    align-items: end;
+    margin-top: .75rem;
+}
+
+.col-span-3 {
+    grid-column: span 3;
+}
+
+.col-span-2 {
+    grid-column: span 2;
+}
+
+.mt-2 {
+    margin-top: .5rem;
+}
+
+.row-actions {
+    margin-top: .75rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.input-text,
+.input-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #dbe2ea;
+    border-radius: 10px;
+    background: #fff;
+    font-size: .95rem;
+    color: #1f2937;
+}
+
+    .input-text:focus,
+    .input-textarea:focus {
+        outline: none;
+        border-color: #1976d2;
+        box-shadow: 0 0 0 3px rgba(25,118,210,.12);
+    }
+
+.input-textarea {
+    min-height: 96px;
+    resize: vertical;
+}
+
+.read-card {
+    border: 1px solid #eef2f7;
+    border-radius: 14px;
+    padding: 1rem;
+    background: #f8fafc;
+    margin-top: .75rem;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: .75rem;
+}
+
+    .table th {
+        padding: 12px 10px;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+        font-weight: 700;
+        color: #475569;
+    }
+
+    .table td {
+        padding: 12px 10px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .table tr:hover td {
+        background: #f8fbff;
+    }
+
+.text-right {
+    text-align: right;
+}
+
+.pager {
+    margin-top: .75rem;
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+}
+
+.err {
+    color: #dc2626;
+    margin-left: .75rem;
+    font-weight: 600;
+}
+
+@media (max-width: 992px) {
+    .kv-grid > div {
+        grid-column: span 12;
+    }
+
+    .form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .col-span-3,
+    .col-span-2 {
+        grid-column: span 2;
+    }
+}

@@ -392,6 +392,44 @@ public class HastaApi
 
         res.EnsureSuccessStatusCode();
     }
+    public async Task<LoginResultDto?> LoginAsync(LoginDto dto, CancellationToken ct = default)
+    {
+        var res = await _http.PostAsJsonAsync("Auth/login", dto, ct);
 
+        if (!res.IsSuccessStatusCode)
+            return null;
 
+        return await res.Content.ReadFromJsonAsync<LoginResultDto>(cancellationToken: ct);
+    }
+
+    
+    public async Task<List<LabSonucDetailDto>> GetLabResultsForVisitAsync(int ziyaretId)
+    {
+        return await _http.GetFromJsonAsync<List<LabSonucDetailDto>>($"lab/by-ziyaret/{ziyaretId}/list")
+               ?? new List<LabSonucDetailDto>();
+    }
+
+    
+    public async Task UpsertLabResultsForVisitAsync(int ziyaretId, LabForVisitBulkDto dto)
+    {
+        var res = await _http.PostAsJsonAsync($"lab/by-ziyaret/{ziyaretId}/bulk", dto);
+        res.EnsureSuccessStatusCode();
+    }
+    public async Task<List<CeddResultDto>> GetCeddCalculationAsync(
+     string sex,
+     double age,
+     double height,
+     double weight,
+     CancellationToken ct = default)
+    {
+        var url =
+            $"Cedd/calculate" +
+            $"?sex={Uri.EscapeDataString(sex)}" +
+            $"&age={age.ToString(System.Globalization.CultureInfo.InvariantCulture)}" +
+            $"&height={height.ToString(System.Globalization.CultureInfo.InvariantCulture)}" +
+            $"&weight={weight.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+
+        return await _http.GetFromJsonAsync<List<CeddResultDto>>(url, ct)
+               ?? new List<CeddResultDto>();
+    }
 }

@@ -1,51 +1,59 @@
-﻿.nav-menu {
-    padding: 1rem;
-    color: #fff;
+﻿/*.sidebar-shell {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem;
+    color: white;
 }
 
-.nav-title {
-    font-size: 1.1rem;
+.sidebar-logo {
+    font-size: 1.35rem;
     font-weight: 700;
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
+    padding-left: .25rem;
+    color: white;
 }
 
-.nav-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+.sidebar-group {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
 }
 
-    .nav-list li {
-        margin-bottom: .5rem;
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .85rem 1rem;
+    border-radius: 12px;
+    color: rgba(255,255,255,.85) !important;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+    .sidebar-link:hover {
+        background: rgba(255,255,255,.12);
+        color: white !important;
     }
 
-    /* NavLink çıktısını garanti yakala */
-    .nav-list :deep(a) {
-        display: block;
-        padding: .6rem .75rem;
-        border-radius: 6px;
-        color: #e6e6e6;
-        text-decoration: none;
-        font-weight: 500;
-        transition: background-color .15s ease;
+    .sidebar-link.active {
+        background: rgba(255,255,255,.18);
+        color: white !important;
     }
 
-    .nav-list :deep(a:hover) {
-        background-color: rgba(255,255,255,.12);
-    }
+.sidebar-bottom {
+    margin-top: auto;
+    padding-top: 1rem;
+}
 
-    .nav-list :deep(a.active) {
-        background-color: rgba(255,255,255,.2);
-        font-weight: 600;
-    }
-
-/* + Yeni Hasta */
-:deep(.new-btn) {
-    background-color: #28a745;
-    color: #fff !important;
+.sidebar-create {
+    display: block;
+    text-align: center;
+    background: #28a745;
+    color: white !important;
+    padding: .9rem 1rem;
+    border-radius: 12px;
+    text-decoration: none;
     font-weight: 600;
 }
-
-:deep(.new-btn:hover) {
-    background-color: #218838;
-}
+*/

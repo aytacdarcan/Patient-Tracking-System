@@ -1,5 +1,16 @@
 ﻿@page "/"
+@inject NavigationManager Nav
 
-<h1>Hasta Takip</h1>
-<p>Hoş geldiniz.</p>
-<p><a href="/hastalar">→ Hastalar sayfasına git</a></p>
+@code {
+    bool _navigated;
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_navigated)
+        {
+            _navigated = true;
+            return InvokeAsync(() => Nav.NavigateTo("/login"));
+        }
+        return Task.CompletedTask;
+    }
+}

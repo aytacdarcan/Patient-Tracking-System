@@ -1,4 +1,5 @@
 ﻿@page "/ziyaretler/yeni/{hastaId:int}"
+@inject HastaTakip.UI.Services.LoginStateService LoginState
 @using HastaTakip.UI.Dtos
 @inject HastaTakip.UI.Services.HastaApi Api
 @inject NavigationManager Nav
@@ -32,74 +33,76 @@ else
         </div>
     </section>
 
+    @if (LoginState.IsDoctor)
+    {
+        <section class="section-card">
+            <h5 class="sec-title">Antropometri <small>(opsiyonel)</small></h5>
+            <div class="form-grid">
+                <label>
+                    Boy (cm)
+                    <input class="input-text" type="number" step="0.01" @bind="bundle.Antropometri!.BoyCm" />
+                </label>
+                <label>
+                    Kilo (kg)
+                    <input class="input-text" type="number" step="0.01" @bind="bundle.Antropometri!.KiloKg" />
+                </label>
+                <label>
+                    Baş çev. (cm)
+                    <input class="input-text" type="number" step="0.01" @bind="bundle.Antropometri!.BasCevresiCm" />
+                </label>
+                <label>
+                    Oturma boyu
+                    <input class="input-text" type="number" step="0.01" @bind="bundle.Antropometri!.OturmaBoyuCm" />
+                </label>
+            </div>
+        </section>
 
-    <section class="section-card">
-        <h5 class="sec-title">Antropometri <small>(opsiyonel)</small></h5>
-        <div class="form-grid">
-            <label>
-                Boy (cm)
-                <input class="input-text" type="number" step="0.01" @bind="bundle.Antropometri!.BoyCm" />
-            </label>
-            <label>
-                Kilo (kg)
-                <input class="input-text" type="number" step="0.01" @bind="bundle.Antropometri!.KiloKg" />
-            </label>
-            <label>
-                Baş çev. (cm)
-                <input class="input-text" type="number" step="0.01" @bind="bundle.Antropometri!.BasCevresiCm" />
-            </label>
-            <label>
-                Oturma boyu
-                <input class="input-text" type="number" step="0.01" @bind="bundle.Antropometri!.OturmaBoyuCm" />
-            </label>
-        </div>
-    </section>
+        <section class="section-card">
+            <h5 class="sec-title">Puberte <small>(opsiyonel)</small></h5>
+            <div class="form-grid">
+                <label>
+                    Not
+                    <input class="input-text" @bind="bundle.Puberte!.PuberteNotu" />
+                </label>
+                <label>
+                    Patolojik Fizik
+                    <input class="input-text" @bind="bundle.Puberte!.PatolojikFizik" />
+                </label>
+            </div>
+        </section>
 
-    <section class="section-card">
-        <h5 class="sec-title">Puberte <small>(opsiyonel)</small></h5>
-        <div class="form-grid">
-            <label>
-                Not
-                <input class="input-text" @bind="bundle.Puberte!.PuberteNotu" />
-            </label>
-            <label>
-                Patolojik Fizik
-                <input class="input-text" @bind="bundle.Puberte!.PatolojikFizik" />
-            </label>
-        </div>
-    </section>
+        <section class="section-card">
+            <h5 class="sec-title">Yorum/Plan <small>(opsiyonel)</small></h5>
+            <div class="form-grid">
+                <label class="col-span-3">
+                    Tedavi/Beslenme/Spor
+                    <textarea class="input-textarea" rows="3" @bind="bundle.YorumPlan!.TedaviBeslenmeSpor"></textarea>
+                </label>
+                <label class="col-span-3">
+                    Notlar
+                    <textarea class="input-textarea" rows="3" @bind="bundle.YorumPlan!.YorumNotlar"></textarea>
+                </label>
+            </div>
+        </section>
 
-    <section class="section-card">
-        <h5 class="sec-title">Yorum/Plan <small>(opsiyonel)</small></h5>
-        <div class="form-grid">
-            <label class="col-span-3">
-                Tedavi/Beslenme/Spor
-                <textarea class="input-textarea" rows="3" @bind="bundle.YorumPlan!.TedaviBeslenmeSpor"></textarea>
-            </label>
-            <label class="col-span-3">
-                Notlar
-                <textarea class="input-textarea" rows="3" @bind="bundle.YorumPlan!.YorumNotlar"></textarea>
-            </label>
-        </div>
-    </section>
-
-    <section class="section-card">
-        <h5 class="sec-title">Özet <small>(opsiyonel)</small></h5>
-        <div class="form-grid">
-            <label>
-                Hedef Boy
-                <input class="input-text" type="number" step="0.01" @bind="bundle.Ozet!.HedefBoyCm" />
-            </label>
-            <label>
-                Kulaç
-                <input class="input-text" type="number" step="0.01" @bind="bundle.Ozet!.KulacCm" />
-            </label>
-            <label>
-                Boy’a Uyan Tartı
-                <input class="input-text" @bind="bundle.Ozet!.BoyaUyanTarti" />
-            </label>
-        </div>
-    </section>
+        <section class="section-card">
+            <h5 class="sec-title">Özet <small>(opsiyonel)</small></h5>
+            <div class="form-grid">
+                <label>
+                    Hedef Boy
+                    <input class="input-text" type="number" step="0.01" @bind="bundle.Ozet!.HedefBoyCm" />
+                </label>
+                <label>
+                    Kulaç
+                    <input class="input-text" type="number" step="0.01" @bind="bundle.Ozet!.KulacCm" />
+                </label>
+                <label>
+                    Boy’a Uyan Tartı
+                    <input class="input-text" @bind="bundle.Ozet!.BoyaUyanTarti" />
+                </label>
+            </div>
+        </section>
+    }
 
     <div class="row-actions" style="margin-bottom:2rem">
         <button type="button" class="btn-blue" @onclick="Kaydet">Kaydet</button>
@@ -116,6 +119,12 @@ else
 
     protected override void OnParametersSet()
     {
+        if (!LoginState.IsLoggedIn)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
         bundle = new ZiyaretBundleCreateDto
         {
             Ziyaret = new ZiyaretCreateDto { HastaID = hastaId, Tarih = DateTime.Today },
@@ -131,6 +140,15 @@ else
         try
         {
             saving = true; error = null;
+
+            if (!LoginState.IsDoctor)
+            {
+                bundle.Antropometri = null;
+                bundle.Puberte = null;
+                bundle.YorumPlan = null;
+                bundle.Ozet = null;
+            }
+
             var id = await Api.CreateVisitBundleAsync(bundle);
             Nav.NavigateTo($"/ziyaretler/{id}");
         }

@@ -94,3 +94,42 @@ h1:focus {
         background-color: #218838;
     }
 
+/* ========================================================
+   GARANTİLİ SECTION HEADER YAN YANA HİZALAMA KODU
+   ======================================================== */
+
+/* Ana kapsayıcıyı esnek satır yapar */
+.section-header {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 1rem !important;
+    margin-bottom: 1rem !important;
+}
+
+    /* Başlığı içeren ilk div'in gereksiz büyümesini engelliyoruz */
+    .section-header > div:first-child {
+        display: flex !important;
+        align-items: center !important;
+        flex: 0 1 auto !important; /* Sadece içeriği kadar yer kaplasın */
+    }
+
+    /* h5 elementinin altındaki tüm blok özelliklerini kırıyoruz */
+    .section-header h5.section-title,
+    .section-header .section-title {
+        margin: 0 !important;
+        padding: 0 !important;
+        display: inline-block !important;
+        white-space: nowrap !important; /* Başlığın aşağı kırılmasını önler */
+    }
+
+    /* Sağdaki butonun kapsayıcısını sağa yaslayıp küçülmesini engelliyoruz */
+    .section-header .section-actions {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        flex: 0 0 auto !important; /* Buton alanını sabit tutar, ezdirmez */
+        margin-left: auto !important; /* Sağ köşeye kilitler */
+    }

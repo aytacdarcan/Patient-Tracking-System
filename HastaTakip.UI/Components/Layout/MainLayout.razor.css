@@ -1,47 +1,40 @@
-﻿/* Layout temel */
-.page {
+﻿.page {
     display: flex;
     min-height: 100vh;
+    background: #f5f7fb;
 }
 
-/* Sol panel */
 .sidebar {
     width: 260px;
+    min-width: 260px;
     background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
 }
 
-/* Sağ içerik */
 main {
     flex: 1;
-    margin: 0;
-    padding: 0;
-    padding-top: 20px; /* içerik üstten boşluk */
+    min-width: 0;
+    padding: 24px;
 }
 
-/* Üst bar (tamamen gizle) */
+/* move the inline layout into CSS and scope it */
 .top-row {
-    display: none !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
 }
 
-/* İçerik boşluklarını toparla */
+/* hide top-row only on small screens */
+@media (max-width: 640px) {
+    .page .top-row { display: none; }
+}
+
 .content {
-    margin: 0;
-    padding: 0 !important;
-}
-
-    /* İçerik çok yapışık olmasın */
-    .content > * {
-        padding-left: 12px;
-        padding-right: 12px;
-    }
-
-/* Sayfa genel margin/padding sıfır (scoped CSS olduğu için yine etkiler) */
-html, body {
-    margin: 0;
+    max-width: 1200px;
+    margin: 0 auto;
     padding: 0;
 }
 
-/* Wide screen davranışı (Blazor default'tan gelen sticky mantığını koruyalım) */
 @media (min-width: 641px) {
     .sidebar {
         height: 100vh;
@@ -50,7 +43,6 @@ html, body {
     }
 }
 
-/* Blazor error ui (default’tan kalsın) */
 #blazor-error-ui {
     background: lightyellow;
     bottom: 0;
@@ -63,10 +55,9 @@ html, body {
     z-index: 1000;
 }
 
-    #blazor-error-ui .dismiss {
-        cursor: pointer;
-        position: absolute;
-        right: 0.75rem;
-        top: 0.5rem;
-    }
-
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}

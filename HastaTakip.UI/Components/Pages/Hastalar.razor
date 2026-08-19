@@ -1,187 +1,129 @@
 ﻿@page "/hastalar"
+@inject HastaTakip.UI.Services.LoginStateService LoginState
 @rendermode InteractiveServer
 @using HastaTakip.UI.Dtos
 @using HastaTakip.UI.Services
 @using Microsoft.AspNetCore.Components.Web
+@using MudBlazor
 @inject HastaApi Api
 @inject NavigationManager Nav
 
-<h3>Hastalar</h3>
+<div class="page-card">
 
-<div style="margin-bottom:.75rem; display:flex; gap:.5rem; align-items:center;">
-    <input type="text" placeholder="İsim / TCKN..."
-           @bind-value="q"
-           @oninput="OnSearchInput"
-           @onkeydown="OnKeyDown"
-           style="width:240px;" />
-    <button type="button" @onclick="Search">Ara</button>
+    <div class="page-header">
+        <div>
+            <h3>Hastalar</h3>
+        </div>
 
-    
-    <a href="/hastalar/yeni" class="btn-add" style="margin-left:.5rem;">+ Yeni Hasta</a>
-</div>
+        @* MudBlazor Bileşenleri ile Güncellenen Toolbar *@
+        <div class="toolbar" style="display: flex; align-items: center; gap: .5rem;">
+            <MudTextField T="string"
+                          Value="@q"
+                          ValueChanged="@(async value => await OnSearchChanged(value))"
+                          Placeholder="İsim / TCKN..."
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Style="width:260px; margin-top: 0;" />
 
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       OnClick="Search">
+                Ara
+            </MudButton>
 
+            <MudButton Href="/hastalar/yeni"
+                       Variant="Variant.Filled"
+                       Color="Color.Success"
+                       StartIcon="@Icons.Material.Filled.Add">
+                Yeni Hasta
+            </MudButton>
+        </div>
+    </div>
 
-<style>
-    
-    a {
-        color: #0074cc;
-        font-weight: 500; 
-        text-decoration: none;
+    @if (loading)
+    {
+        <div class="d-flex justify-center my-4">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
     }
-
-        a:hover {
-            text-decoration: underline;
-            color: #005fa3;
-        }
-
-
-
-    .btn-add {
-        background-color: #28a745;
-        color: #fff;
-        padding: 6px 12px;
-        border-radius: 6px;
-        text-decoration: none;
-        font-weight: 600;
-        transition: background-color .2s;
+    else if (!string.IsNullOrWhiteSpace(error))
+    {
+        <MudText Color="Color.Error">Error: @error</MudText>
     }
-
-        .btn-add:hover {
-            background-color: #218838;
-        }
-
-    
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 1rem;
-    }
-
-   
-    th {
-        text-align: left;
-        padding: 10px;
-        font-weight: 600;
-        color: #222;
-        border-bottom: 1px solid #ddd;
-    }
-
-    
-    td {
-        padding: 10px;
-        font-size: 15px;
-        color: #111;
-        border-bottom: 1px solid #eee;
-        font-weight: 550; 
-    }
-
-
-    
-    tbody tr:nth-child(even) {
-        background-color: #fafafa;
-    }
-
-    
-    tr:hover td {
-        background-color: #f2f2f2;
-    }
-
-    
-    h3 {
-        font-weight: 500;
-        color: #222;
-        margin-bottom: .75rem;
-    }
-
-
-
-    input[type="text"] {
-        padding: 4px 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
-
-    button {
-        background-color: #1976d2;
-        color: #fff;
-        border: none;
-        padding: 5px 10px;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-
-        button:hover {
-            background-color: #135ca8;
-        }
-</style>
-
-
-
-
-@if (loading)
-{
-    <p>Yükleniyor...</p>
-}
-else if (!string.IsNullOrWhiteSpace(error))
-{
-    <p style="color:red">Error: @error</p>
-}
-else
-{
-    <table style="border-collapse:collapse; width:100%;">
-        <thead>
-            <tr>
-                <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem;">Ad Soyad</th>
-                <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem;">Cinsiyet</th>
-                <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem; cursor:pointer"
-                    @onclick="ToggleBirthSort">
+    else
+    {
+        <MudTable Items="@data.Items" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Class="patients-table">
+            <HeaderContent>
+                <MudTh Style="font-weight:700; color:#475569;">Ad Soyad</MudTh>
+                <MudTh Style="font-weight:700; color:#475569;">Cinsiyet</MudTh>
+                <MudTh Style="font-weight:700; color:#475569; cursor:pointer;" @onclick="ToggleBirthSort">
                     Doğum (Yaş)
                     @if (birthAsc is true)
                     {
-                        <span> ▲</span>
+                        <span style="font-size: 0.85rem;"> ▲</span>
                     }
                     else if (birthAsc is false)
                     {
-
-                        <span> ▼</span>
+                        <span style="font-size: 0.85rem;"> ▼</span>
                     }
-                </th>
-                <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem;">Kayıtlanma Tarihi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var p in data.Items)
-            {
-                <tr>
-                    <td style="border-bottom:1px solid #eee; padding:.5rem;">
-                        <a href="@($"/hastalar/{p.Id}")"><b>@p.Ad @p.Soyad</b></a>
-                    </td>
-                    <td style="border-bottom:1px solid #eee; padding:.5rem;">
-                        @(p.Cinsiyet == "E" ? "Erkek" : p.Cinsiyet == "K" ? "Kadın" : "-")
-                    </td>
-                    <td style="border-bottom:1px solid #eee; padding:.5rem;">
-                        @(p.BirthDate?.ToString("dd.MM.yyyy") ?? "-")
-                        @if (p.BirthDate is not null)
-                        {
-                            <span> (@AgePretty(p.BirthDate.Value))</span>
-                        }
-                    </td>
-                    <td style="border-bottom:1px solid #eee; padding:.5rem;">
-                        @p.KayitTarihi.ToString("dd.MM.yyyy")
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                </MudTh>
+                <MudTh Style="font-weight:700; color:#475569;">Kayıtlanma Tarihi</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Ad Soyad">
+                    <MudLink Href="@($"/hastalar/{context.Id}")"><b>@context.Ad @context.Soyad</b></MudLink>
+                </MudTd>
+                <MudTd DataLabel="Cinsiyet">
+                    @(context.Cinsiyet == "E" ? "Erkek" : context.Cinsiyet == "K" ? "Kadın" : "-")
+                </MudTd>
+                <MudTd DataLabel="Doğum (Yaş)">
+                    @(context.BirthDate?.ToString("dd.MM.yyyy") ?? "-")
+                    @if (context.BirthDate is not null)
+                    {
+                        <span style="color: #64748b;"> (@AgePretty(context.BirthDate.Value))</span>
+                    }
+                </MudTd>
+                <MudTd DataLabel="Kayıtlanma Tarihi">
+                    @context.KayitTarihi.ToString("dd.MM.yyyy")
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
 
-    <div style="margin-top:.75rem; display:flex; align-items:center; gap:.5rem;">
-        <button type="button" disabled="@(_page <= 1)" @onclick="Prev">Prev</button>
-        <span>Sayfa @_page / @TotalPages</span>
-        <button type="button" disabled="@(_page >= TotalPages)" @onclick="Next">Next</button>
-        <span style="margin-left:.5rem; color:#666;">Toplam: @data.Total</span>
-    </div>
-}
+        <MudStack Row="true"
+          AlignItems="AlignItems.Center"
+          Justify="Justify.SpaceBetween"
+          Class="mt-5 px-4"
+          Spacing="2">
+
+            <MudText Typo="Typo.body2" Style="color:#64748b; font-weight:500;">
+                Toplam: <b style="color:#111827;">@data.Total</b> kayıt bulundu.
+            </MudText>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           Size="Size.Small"
+                           Disabled="@(_page <= 1)"
+                           OnClick="Prev">
+                    Önceki
+                </MudButton>
+
+                <MudText Typo="Typo.subtitle2" Style="font-weight:600; color:#475569; min-width:100px; text-align:center;">
+                    Sayfa @_page / @TotalPages
+                </MudText>
+
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           Size="Size.Small"
+                           Disabled="@(_page >= TotalPages)"
+                           OnClick="Next">
+                    Sonraki
+                </MudButton>
+            </MudStack>
+        </MudStack>
+    }
+</div>
 
 @code {
     string q = "";
@@ -191,21 +133,30 @@ else
     int _page = 1;
     int _pageSize = 25;
 
-    
-    bool? birthAsc = null;           
-    string? currentSort = "kayittarihi"; 
-    
+    bool? birthAsc = null;
+    string? currentSort = "kayittarihi";
 
     PagedResult<PatientListDto> data = new() { Items = new() };
 
     int TotalPages => Math.Max(1, (int)Math.Ceiling((double)(data.Total) / Math.Max(1, _pageSize)));
 
-    protected override async Task OnInitializedAsync() => await Load();
+    protected override async Task OnInitializedAsync()
+    {
+        if (!LoginState.IsLoggedIn)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        await Load();
+    }
     CancellationTokenSource? _searchCts;
 
-    async Task OnSearchInput(ChangeEventArgs e)
+    // Yeni Eklenen Gecikmeli Arama Metodu (Debounce)
+    async Task OnSearchChanged(string value)
     {
-        q = (string?)e.Value ?? "";
+        q = value ?? "";
+
         if (string.IsNullOrWhiteSpace(q) || q.Trim().Length < 2)
         {
             _page = 1;
@@ -253,10 +204,9 @@ else
             birthAsc = !birthAsc;
 
         currentSort = "birthdate";
-        _page = 1; 
-        await Load(); 
+        _page = 1;
+        await Load();
     }
-
 
     string AgePretty(DateTime birth)
     {
@@ -274,11 +224,4 @@ else
     async Task Next() { if (_page < TotalPages) { _page++; await Load(); } }
 
     void GoDetail(int id) => Nav.NavigateTo($"/hastalar/{id}");
-
-    void OnKeyDown(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter") _ = Search();
-    }
-
-
 }

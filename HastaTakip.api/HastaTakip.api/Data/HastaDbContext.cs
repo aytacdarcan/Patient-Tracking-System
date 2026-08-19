@@ -1,6 +1,6 @@
-﻿    using System.Reflection.Emit;
-    using HastaTakip.Api.Models;
+﻿    using HastaTakip.Api.Models;
     using Microsoft.EntityFrameworkCore;
+    using System.Reflection.Emit;
 
     namespace HastaTakip.Api.Data
     {
@@ -22,6 +22,7 @@
             public DbSet<GrowthLMS> GrowthLMS { get; set; } = default!;
             public DbSet<LabSonuc> LabSonuclari { get; set; }
             public DbSet<LabParametre> LabParametreler { get; set; }
+            public DbSet<User> Users => Set<User>();
 
 
 
@@ -29,9 +30,30 @@
         {
             base.OnModelCreating(b);
 
-            
+            b.Entity<User>(e =>
+            {
+                e.ToTable("Users");
+
+                e.HasKey(x => x.UserID);
+
+                e.Property(x => x.Username)
+                 .HasMaxLength(50)
+                 .IsRequired();
+
+                e.Property(x => x.Password)
+                 .HasMaxLength(100)
+                 .IsRequired();
+
+                e.Property(x => x.Role)
+                 .HasMaxLength(20)
+                 .IsRequired();
+
+                e.HasIndex(x => x.Username)
+                 .IsUnique();
+            });
+
             // klinik.Hasta
-            
+
             b.Entity<Patient>(e =>
             {
                 e.ToTable("Hasta", "klinik", tb =>
@@ -298,6 +320,7 @@
 
                 e.HasIndex(x => new { x.Kaynak, x.Olcum, x.Cinsiyet, x.YasAy }).IsUnique();
             });
+
         }
 
     }

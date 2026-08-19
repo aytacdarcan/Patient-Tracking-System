@@ -1,5 +1,7 @@
 ﻿@page "/hastalar/duzenle/{id:int}"
+@inject HastaTakip.UI.Services.LoginStateService LoginState
 @using HastaTakip.UI.Dtos
+@using MudBlazor
 @inject HastaTakip.UI.Services.HastaApi Api
 @inject NavigationManager Nav
 @rendermode InteractiveServer
@@ -16,35 +18,116 @@ else if (!string.IsNullOrWhiteSpace(error))
 }
 else
 {
-    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;max-width:900px;">
-        <label>Ad<input @bind="model.Ad" /></label>
-        <label>Soyad<input @bind="model.Soyad" /></label>
-        <label>Doğum Tarihi<input type="date" @bind="model.BirthDate" /></label>
+    <MudPaper Class="pa-4"
+              Elevation="0"
+              Outlined="true"
+              Style="width:100%; max-width:none;">
 
-        <label style="grid-column:span 3;">
-            Cinsiyet
-            <select @bind="model.Cinsiyet">
-                <option value="">Seçiniz</option>
-                <option value="E">Erkek</option>
-                <option value="K">Kadın</option>
-            </select>
-        </label>
+        <MudGrid Spacing="3">
 
-        <label>TCKN<input maxlength="11" @bind="model.TcKimlikNo" /></label>
-        <label>Telefon<input @bind="model.Telefon" /></label>
-        <label>E-posta<input type="email" @bind="model.Email" /></label>
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField @bind-Value="model.Ad"
+                              Label="Ad"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              FullWidth="true" />
+            </MudItem>
 
-        <label style="grid-column:span 3;">Adres<textarea rows="2" @bind="model.Adres"></textarea></label>
-    </div>
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField @bind-Value="model.Soyad"
+                              Label="Soyad"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              FullWidth="true" />
+            </MudItem>
 
-    <div style="margin-top:1rem;">
-        <button type="button" @onclick="Save">Kaydet</button>
-        <button type="button" style="margin-left:.5rem" @onclick="Cancel">Vazgeç</button>
+            <MudItem xs="12" sm="6" md="4">
+                <MudDatePicker Label="Doğum Tarihi"
+                               Date="@model.BirthDate"
+                               DateChanged="@(d => model.BirthDate = d)"
+                               DateFormat="dd.MM.yyyy"
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Dense"
+                               Clearable="true" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="4">
+                <MudSelect T="string"
+                           @bind-Value="model.Cinsiyet"
+                           Label="Cinsiyet"
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Dense"
+                           Clearable="true"
+                           FullWidth="true">
+                    <MudSelectItem Value="@("E")">Erkek</MudSelectItem>
+                    <MudSelectItem Value="@("K")">Kadın</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField @bind-Value="model.TcKimlikNo"
+                              Label="TCKN"
+                              MaxLength="11"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              FullWidth="true" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField @bind-Value="model.Telefon"
+                              Label="Telefon"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              FullWidth="true" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField @bind-Value="model.Email"
+                              Label="E-posta"
+                              InputType="InputType.Email"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              FullWidth="true" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudTextField @bind-Value="model.Adres"
+                              Label="Adres"
+                              Lines="2"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              FullWidth="true" />
+            </MudItem>
+
+        </MudGrid>
+
+    </MudPaper>
+
+    <MudStack Row="true"
+              AlignItems="AlignItems.Center"
+              Spacing="2"
+              Class="mt-4">
+
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   OnClick="Save">
+            Kaydet
+        </MudButton>
+
+        <MudButton Variant="Variant.Outlined"
+                   Color="Color.Default"
+                   OnClick="Cancel">
+            Vazgeç
+        </MudButton>
+
         @if (!string.IsNullOrWhiteSpace(saveError))
         {
-            <span style="color:#b00020;margin-left:.5rem">@saveError</span>
+            <MudText Color="Color.Error">
+                @saveError
+            </MudText>
         }
-    </div>
+
+    </MudStack>
 }
 
 @code {
@@ -59,11 +142,18 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        loading = true; error = null; saveError = null;
+        if (!LoginState.IsLoggedIn)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        loading = true;
+        error = null;
+        saveError = null;
 
         try
         {
-            
             var d = await Api.GetPatientAsync(id);
             if (d is null) { error = "Hasta bulunamadı."; return; }
 
@@ -72,7 +162,7 @@ else
                 Ad = d.Ad,
                 Soyad = d.Soyad,
                 BirthDate = d.BirthDate,
-                Cinsiyet = d.Cinsiyet,     
+                Cinsiyet = d.Cinsiyet,
                 TcKimlikNo = d.TcKimlikNo,
                 Telefon = d.Telefon,
                 Email = d.Email,

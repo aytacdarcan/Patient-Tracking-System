@@ -10,6 +10,7 @@ builder.Services.AddScoped<IGrowthLmsService, GrowthLmsService>();
 
 //  ANTROPOMETRİ SDS SERVİSİ 
 builder.Services.AddScoped<IAntropometriSdsService, AntropometriSdsService>();
+builder.Services.AddSingleton<CeddService>();
 
 // 1) DbContext
 builder.Services.AddDbContext<HastaDbContext>(options =>

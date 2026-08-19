@@ -1,4 +1,6 @@
 ﻿using HastaTakip.Api.Data;
+using HastaTakip.Api.Dtos;
+using HastaTakip.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -76,5 +78,75 @@ public class LabController : ControllerBase
 
         return Ok(list);
     }
+    [HttpPost("by-ziyaret/{ziyaretId:int}")]
+    public async Task<IActionResult> CreateForZiyaret(int ziyaretId, [FromBody] LabSonucCreateDto dto)
+    {
+        var entity = new LabSonuc
+        {
+            ZiyaretID = ziyaretId,
+            LabParametreID = dto.LabParametreID,
+            Deger = dto.Deger,
+            DegerSayisal = dto.DegerSayisal,
+            RefAlt = dto.RefAlt,
+            RefUst = dto.RefUst,
+            Tarih = DateTime.Now
+        };
 
+        _db.LabSonuclari.Add(entity);
+        await _db.SaveChangesAsync();
+
+        return Ok();
+    }
+    // GET /api/lab/by-ziyaret/{ziyaretId}/list
+    [HttpGet("by-ziyaret/{ziyaretId:int}/list")]
+    public async Task<IActionResult> GetFlatByZiyaret(int ziyaretId)
+    {
+        var rows = await _db.LabSonuclari
+            .AsNoTracking()
+            .Where(s => s.ZiyaretID == ziyaretId)
+            .Select(s => new LabSonucDetailDto
+            {
+                LabSonucID = s.LabSonucID,
+                LabParametreID = s.LabParametreID,
+                Deger = s.Deger,
+                RefAlt = s.RefAlt,
+                RefUst = s.RefUst,
+                Tarih = s.Tarih
+            })
+            .ToListAsync();
+
+        return Ok(rows);
+    }
+
+    // POST /api/lab/by-ziyaret/{ziyaretId}/bulk
+    [HttpPost("by-ziyaret/{ziyaretId:int}/bulk")]
+    public async Task<IActionResult> UpsertForZiyaret(int ziyaretId, [FromBody] LabForVisitBulkDto dto)
+    {
+        
+        var existing = await _db.LabSonuclari.Where(x => x.ZiyaretID == ziyaretId).ToListAsync();
+        if (existing.Any())
+        {
+            _db.LabSonuclari.RemoveRange(existing);
+            await _db.SaveChangesAsync();
+        }
+
+       
+        foreach (var it in dto.Items)
+        {
+            var ent = new LabSonuc
+            {
+                ZiyaretID = ziyaretId,
+                LabParametreID = it.LabParametreID,
+                Deger = it.Deger,
+                DegerSayisal = decimal.TryParse(it.Deger?.Replace(',', '.'), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var ds) ? ds : (decimal?)null,
+                RefAlt = it.RefAlt,
+                RefUst = it.RefUst,
+                Tarih = dto.Tarih
+            };
+            _db.LabSonuclari.Add(ent);
+        }
+
+        await _db.SaveChangesAsync();
+        return Ok();
+    }
 }

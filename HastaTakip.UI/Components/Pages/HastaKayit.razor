@@ -1,7 +1,9 @@
 ﻿@page "/hastalar/yeni"
+@inject HastaTakip.UI.Services.LoginStateService LoginState
 @using System.Net
 @using HastaTakip.UI.Dtos
 @using HastaTakip.UI.Services
+@using MudBlazor
 @inject HastaApi Api
 @inject NavigationManager Nav
 @rendermode InteractiveServer
@@ -29,201 +31,612 @@
     </div>
 }
 
-<h3>Yeni Hasta Kaydı</h3>
+    <MudText Typo="Typo.h4" Class="mb-4">
+        Yeni Hasta Kaydı
+    </MudText>
 
 <div class="form-page">
 
     <!-- 1) HASTA -->
-    <section class="card">
-        <h4>1) Hasta</h4>
-        <div class="grid-3">
-            <label>TCKN<input @bind="hasta.TcKimlikNo" maxlength="11" /></label>
-            <label>Ad<input @bind="hasta.Ad" /></label>
-            <label>Soyad<input @bind="hasta.Soyad" /></label>
+    <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
 
-            <label>
-                Cinsiyet
-                <select @bind="hasta.Cinsiyet">
-                    <option value="">Seçiniz</option>
-                    <option value="E">Erkek</option>
-                    <option value="K">Kadın</option>
-                </select>
-            </label>
-            <label>Doğum Tarihi<input type="date" @bind="hasta.BirthDate" /></label>
-            <label>Telefon<input @bind="hasta.Telefon" placeholder="05xx..." /></label>
+        <MudText Typo="Typo.h6" Class="mb-4">
+            1) Hasta
+        </MudText>
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="4">
 
-            <label>E-posta<input type="email" @bind="hasta.Email" /></label>
-            <label class="span-3">Adres<textarea rows="2" @bind="hasta.Adres"></textarea></label>
-        </div>
-    </section>
+                <MudTextField @bind-Value="hasta.TcKimlikNo"
+                              Label="TCKN"
+                              MaxLength="11"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" />
+
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+
+                <MudTextField @bind-Value="hasta.Ad"
+                              Label="Ad"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" />
+
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="4">
+
+                <MudTextField @bind-Value="hasta.Soyad"
+                              Label="Soyad"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" />
+
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="4">
+
+                <MudSelect T="string"
+                           @bind-Value="hasta.Cinsiyet"
+                           Label="Cinsiyet"
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Dense">
+
+                    <MudSelectItem T="string" Value="@("")">Seçiniz</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("E")">Erkek</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("K")">Kadın</MudSelectItem>
+
+                </MudSelect>
+
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+
+                <MudDatePicker @bind-Date="hasta.BirthDate"
+                               Label="Doğum Tarihi"
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Dense"
+                               DateFormat="dd.MM.yyyy" />
+
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+
+                <MudTextField @bind-Value="hasta.Telefon"
+                              Label="Telefon"
+                              Placeholder="05xx..."
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" />
+
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="4">
+
+                <MudTextField @bind-Value="hasta.Email"
+                              Label="E-posta"
+                              InputType="InputType.Email"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" />
+
+            </MudItem>
+            <MudItem xs="12">
+
+                <MudTextField @bind-Value="hasta.Adres"
+                              Label="Adres"
+                              Lines="2"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" />
+
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
 
     <!-- 2) AİLE ÜYELERİ -->
-    <section class="card">
-        <h4>2) Aile Üyeleri (opsiyonel)</h4>
-        <div class="grid-6 align-end">
-            <label>İlişki<input @bind="aileForm.Iliski" placeholder="Anne/Baba/Kardeş..." /></label>
-            <label>Ad<input @bind="aileForm.Ad" placeholder="İsim" /></label>
-            <label>Doğum<input type="date" @bind="aileForm.DogumTarihi" /></label>
-            <label>Boy (cm)<input type="number" step="0.1" @bind="aileForm.BoyCm" /></label>
-            <label>Kilo (kg)<input type="number" step="0.1" @bind="aileForm.AgirlikKg" /></label>
-            <div class="btn-cell">
-                <button type="button"
-                        class="btn-small"
-                        @onclick="AileEkle"
-                        disabled="@(string.IsNullOrWhiteSpace(aileForm.Iliski)
-                                                                   || string.IsNullOrWhiteSpace(aileForm.Ad)
-                                                                   || aileForm.DogumTarihi == null)">
-                    Ekle
-                </button>
-            </div>
+    <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
 
-            <label class="span-3">Sağlık Durumu<input @bind="aileForm.SaglikDurumu" /></label>
-            <label class="span-2">Meslek<input @bind="aileForm.Meslek" /></label>
-        </div>
+        <MudText Typo="Typo.h6" Class="mb-4">
+        2) Aile Üyeleri (opsiyonel)
+        </MudText>
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="4">
+
+                <MudTextField @bind-Value="aileForm.Iliski"
+                              Label="İlişki"
+                              Placeholder="Anne/Baba/Kardeş..."
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" />
+
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+
+                <MudTextField @bind-Value="aileForm.Ad"
+                              Label="Ad"
+                              Placeholder="İsim"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" />
+
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="4">
+                <MudDatePicker Label="Doğum"
+                               Date="@aileForm.DogumTarihi"
+                               DateChanged="@(d => aileForm.DogumTarihi = d)"
+                               DateFormat="dd.MM.yyyy"
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Dense"
+                               Clearable="true" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="4">
+
+                <MudNumericField T="decimal?"
+                                 @bind-Value="aileForm.BoyCm"
+                                 Label="Boy (cm)"
+                                 Step="0.1M"
+                                 Variant="Variant.Outlined"
+                                 Margin="Margin.Dense" />
+
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="4">
+
+                <MudNumericField T="decimal?"
+                                 @bind-Value="aileForm.AgirlikKg"
+                                 Label="Kilo (kg)"
+                                 Step="0.1M"
+                                 Variant="Variant.Outlined"
+                                 Margin="Margin.Dense" />
+
+            </MudItem>
+
+            <MudItem xs="12">
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           OnClick="AileEkle"
+                           Disabled="@(string.IsNullOrWhiteSpace(aileForm.Iliski)
+                                                      || string.IsNullOrWhiteSpace(aileForm.Ad)
+                                                      || aileForm.DogumTarihi == null)">
+                    Ekle
+                </MudButton>
+
+            </MudItem>
+
+            <MudItem xs="12" md="8">
+
+                <MudTextField @bind-Value="aileForm.SaglikDurumu"
+                              Label="Sağlık Durumu"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" />
+
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+
+                <MudTextField @bind-Value="aileForm.Meslek"
+                              Label="Meslek"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" />
+
+            </MudItem>
+        </MudGrid>
 
         @if (aileUyeleri.Count > 0)
         {
-            <ul class="list-inline">
+            <MudStack Spacing="2" Class="mt-4">
+
                 @foreach (var au in aileUyeleri.Select((x, i) => new { x, i }))
                 {
-                    <li>
-                        <b>@au.x.Iliski</b> — @au.x.Ad (@(au.x.DogumTarihi?.ToString("dd.MM.yyyy") ?? "-"))
-                        <button type="button" class="btn-delete" @onclick="() => AileSil(au.i)">Sil</button>
-                    </li>
+                    <MudPaper Class="pa-3" Elevation="0" Outlined="true">
+
+                        <MudStack Row="true"
+                                  AlignItems="AlignItems.Center"
+                                  Justify="Justify.SpaceBetween">
+
+                            <MudText>
+
+                                <b>@au.x.Iliski</b> —
+                                @au.x.Ad
+                                (@(au.x.DogumTarihi?.ToString("dd.MM.yyyy") ?? "-"))
+
+                            </MudText>
+
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Error"
+                                       Size="Size.Small"
+                                       OnClick="@(() => AileSil(au.i))">
+                                Sil
+                            </MudButton>
+
+                        </MudStack>
+
+                    </MudPaper>
                 }
-            </ul>
+
+            </MudStack>
         }
-    </section>
+    </MudPaper>
 
     <!-- 3) ÖYKÜLER -->
-    <section class="card">
-        <h4>3) Öyküler (opsiyonel)</h4>
-        <div class="grid-2">
-            <label class="span-2">Yakınmalar<textarea rows="2" @bind="oyku.Yakinmalar"></textarea></label>
-            <label class="span-2">Öyküsü<textarea rows="2" @bind="oyku.Oykusu"></textarea></label>
+    <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
 
-            <label>Gebelik Öyküsü<input @bind="oyku.GebelikOykusu" /></label>
-            <label>Doğum Şekli<input @bind="oyku.DogumSekli" /></label>
+        <MudText Typo="Typo.h6" Class="mb-4">
+            3) Öyküler (opsiyonel)
+        </MudText>
 
-            <label>Doğum Ağırlığı<input @bind="oyku.DogumAgirlik" placeholder="örn: 3200 gr" /></label>
-            <label>Doğum Boyu<input @bind="oyku.DogumBoyu" placeholder="örn: 50 cm" /></label>
+        <MudGrid>
 
-            <label>Neonatal Dönem<input @bind="oyku.NeonatalDonem" /></label>
-            <label>Nör. Gelişim<input @bind="oyku.NorGelisim" /></label>
-            <label>Süt / Çocuk Beslenme<input @bind="oyku.SutcocukBeslenme" /></label>
-            <label>Geçirilen Hastalıklar<input @bind="oyku.GecirilenHast" /></label>
-            <label>Operasyon / Kaza<input @bind="oyku.OperasyonKaza" /></label>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="oyku.Yakinmalar"
+                              Label="Yakınmalar"
+                              Lines="3"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" />
+            </MudItem>
 
-            <label class="span-2">
-                Kan Akrabalığı
-                <input @bind="oyku.KanAkrabaligi" placeholder="örn: Yok / 1. derece kuzen evliliği" />
-            </label>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="oyku.Oykusu"
+                              Label="Öyküsü"
+                              Lines="3"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" />
+            </MudItem>
 
-            <label>Kardeş Sağlığı<input @bind="oyku.KardesSagligi" /></label>
-            <label>Aile Hastalıkları<input @bind="oyku.AileHastaliklar" /></label>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="oyku.GebelikOykusu" Label="Gebelik Öyküsü" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
 
-            <label>Oluşturma Tarihi<input type="datetime-local" @bind="oyku.OlusturmaTarihi" /></label>
-        </div>
-    </section>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="oyku.DogumSekli" Label="Doğum Şekli" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
 
-    <!-- 4) BESLENME / ALIŞKANLIKLAR -->
-    <section class="card">
-        <h4>4) Beslenme / Alışkanlıklar (opsiyonel)</h4>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="oyku.DogumAgirlik" Label="Doğum Ağırlığı" Placeholder="örn: 3200 gr" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
 
-        <div class="grid-7 align-end">
-            <label>Tarih<input type="date" @bind="diyetForm.Tarih" /></label>
-            <label>Ekmek<input @bind="diyetForm.Ekmek" /></label>
-            <label>Tahıl<input @bind="diyetForm.Tahil" /></label>
-            <label>Et<input @bind="diyetForm.Et" /></label>
-            <label>Peynir<input @bind="diyetForm.Peynir" /></label>
-            <label>Süt<input @bind="diyetForm.Sut" /></label>
-            <label>Yoğurt<input @bind="diyetForm.Yogurt" /></label>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="oyku.DogumBoyu" Label="Doğum Boyu" Placeholder="örn: 50 cm" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
 
-            <label>Meyve<input @bind="diyetForm.Meyve" /></label>
-            <label>Sebze<input @bind="diyetForm.Sebze" /></label>
-            <label>Şekerli İçecek<input @bind="diyetForm.SiviGida" /></label>
-            <label>Abur Cubur<input @bind="diyetForm.AburCubur" /></label>
-            <label>Ekran Süresi<input @bind="diyetForm.EkranSuresi" /></label>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="oyku.NeonatalDonem" Label="Neonatal Dönem" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
 
-            <div class="span-7">
-                <button type="button"
-                        class="btn-small"
-                        @onclick="DiyetEkle"
-                        disabled="@(diyetForm.Tarih == default)">
-                    Ekle
-                </button>
-            </div>
-        </div>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="oyku.NorGelisim" Label="Nör. Gelişim" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
 
-        @if (diyetler.Count > 0)
-        {
-            <ul class="list-inline">
-                @foreach (var d in diyetler.Select((x, i) => new { x, i }))
-                {
-                    <li>
-                        <b>@(d.x.Tarih == default ? "-" : d.x.Tarih.ToString("dd.MM.yyyy"))</b> —
-                        Ekmek:@d.x.Ekmek,
-                        Tahıl:@d.x.Tahil,
-                        Et:@d.x.Et,
-                        Peynir:@d.x.Peynir,
-                        Süt:@d.x.Sut,
-                        Yoğurt:@d.x.Yogurt,
-                        Meyve:@d.x.Meyve,
-                        Sebze:@d.x.Sebze,
-                        Şekerli İçecek:@d.x.SiviGida,
-                        Abur Cubur:@d.x.AburCubur,
-                        Ekran Süresi:@d.x.EkranSuresi
-                        <button type="button" class="link-btn" @onclick="() => DiyetSil(d.i)">Sil</button>
-                    </li>
-                }
-            </ul>
-        }
-    </section>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="oyku.SutcocukBeslenme" Label="Süt / Çocuk Beslenme" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
 
-    <!-- 5) ZİYARET + ANTROPOMETRİ -->
-    <section class="card">
-        <h4>5) İlk Ziyaret + Antropometri (opsiyonel)</h4>
-        <div class="grid-3">
-            <label>Ziyaret Tarihi<input type="date" @bind="ilkZiyaretTarihi" /></label>
-            <label class="span-2">Not<input @bind="ilkZiyaretNotu" /></label>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="oyku.GecirilenHast" Label="Geçirilen Hastalıklar" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
 
-            <label>Boy (cm)<input type="number" step="0.1" @bind="boy" min="30" max="220" /></label>
-            <label>Kilo (kg)<input type="number" step="0.1" @bind="kilo" min="1" max="200" /></label>
-            <label>Baş Çev. (cm)<input type="number" step="0.1" @bind="basCevresi" min="25" max="65" /></label>
-            <label>Oturma Boyu (cm)<input type="number" step="0.1" @bind="oturmaBoyuCm" min="20" max="140" /></label>
-        </div>
-    </section>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="oyku.OperasyonKaza" Label="Operasyon / Kaza" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
 
-    <!-- 6) PUBERTE FİZİK + YORUM PLAN -->
-    <section class="card">
-        <h4>6) PuberteFizik & YorumPlan (opsiyonel)</h4>
-        <div class="grid-2">
-            <label>Puberte Notu<input @bind="pf.PuberteNotu" /></label>
-            <label>Patolojik Fizik<input @bind="pf.PatolojikFizik" /></label>
-            <label class="span-2">Tedavi/Beslenme/Spor<textarea rows="2" @bind="yp.TedaviBeslenmeSpor"></textarea></label>
-            <label class="span-2">Yorum Notlar<textarea rows="2" @bind="yp.YorumNotlar"></textarea></label>
-            <label>Oluşturma Tarihi<input type="datetime-local" @bind="yp.OlusturmaTarihi" /></label>
-        </div>
-    </section>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="oyku.KanAkrabaligi" Label="Kan Akrabalığı" Placeholder="örn: Yok / 1. derece kuzen evliliği" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
 
-    <!-- 7) KLİNİK ÖZET -->
-    <section class="card">
-        <h4>7) Klinik Özet (opsiyonel)</h4>
-        <div class="grid-3">
-            <label>Kulaç (cm)<input type="number" step="0.1" @bind="ozet.KulacCm" /></label>
-            <label>Hedef Boy (cm)<input type="number" step="0.1" @bind="ozet.HedefBoyCm" /></label>
-            <label class="span-2">Boya Uyan Tartı<input type="text" maxlength="50" @bind="ozet.BoyaUyanTarti" /></label>
-        </div>
-    </section>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="oyku.KardesSagligi" Label="Kardeş Sağlığı" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
 
-    <!-- KAYDET BUTONU -->
-    <div class="actions">
-        <button type="button" class="btn-save" @onclick="Kaydet" disabled="@busy">Kaydet</button>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="oyku.AileHastaliklar" Label="Aile Hastalıkları" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker Label="Oluşturma Tarihi"
+                               Date="@oyku.OlusturmaTarihi"
+                               DateChanged="@(d => oyku.OlusturmaTarihi = d)"
+                               DateFormat="dd.MM.yyyy"
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Dense"
+                               Clearable="true" />
+            </MudItem>
+        </MudGrid>
+
+    </MudPaper>
+
+    @* Sections 4-7: only visible to doctors *@
+    @if (LoginState.IsDoctor)
+    {
+        <!-- 4) BESLENME / ALIŞKANLIKLAR -->
+        <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
+
+            <MudText Typo="Typo.h6" Class="mb-4">
+                4) Beslenme / Alışkanlıklar (opsiyonel)
+            </MudText>
+
+            <MudGrid>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudDatePicker Label="Tarih"
+                                   Date="@diyetForm.Tarih"
+                                   DateChanged="@(d => diyetForm.Tarih = d ?? DateTime.Today)"
+                                   DateFormat="dd.MM.yyyy"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense"
+                                   Clearable="false" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudTextField @bind-Value="diyetForm.Ekmek" Label="Ekmek" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudTextField @bind-Value="diyetForm.Tahil" Label="Tahıl" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudTextField @bind-Value="diyetForm.Et" Label="Et" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudTextField @bind-Value="diyetForm.Peynir" Label="Peynir" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudTextField @bind-Value="diyetForm.Sut" Label="Süt" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudTextField @bind-Value="diyetForm.Yogurt" Label="Yoğurt" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudTextField @bind-Value="diyetForm.Meyve" Label="Meyve" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudTextField @bind-Value="diyetForm.Sebze" Label="Sebze" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudTextField @bind-Value="diyetForm.SiviGida" Label="Şekerli İçecek" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudTextField @bind-Value="diyetForm.AburCubur" Label="Abur Cubur" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudTextField @bind-Value="diyetForm.EkranSuresi" Label="Ekran Süresi" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Disabled="@(diyetForm.Tarih == default)"
+                               OnClick="DiyetEkle">
+                        Ekle
+                    </MudButton>
+                </MudItem>
+
+            </MudGrid>
+
+            @if (diyetler.Count > 0)
+            {
+                <MudStack Spacing="2" Class="mt-4">
+
+                    @foreach (var d in diyetler.Select((x, i) => new { x, i }))
+                    {
+                        <MudPaper Class="pa-3" Elevation="0" Outlined="true">
+
+                            <MudStack Row="true"
+                                      AlignItems="AlignItems.Center"
+                                      Justify="Justify.SpaceBetween">
+
+                                <MudText>
+                                    <b>@(d.x.Tarih == default ? "-" : d.x.Tarih.ToString("dd.MM.yyyy"))</b>
+                                    — Ekmek:@d.x.Ekmek, Tahıl:@d.x.Tahil, Et:@d.x.Et, Peynir:@d.x.Peynir,
+                                    Süt:@d.x.Sut, Yoğurt:@d.x.Yogurt, Meyve:@d.x.Meyve, Sebze:@d.x.Sebze,
+                                    Şekerli İçecek:@d.x.SiviGida, Abur Cubur:@d.x.AburCubur, Ekran Süresi:@d.x.EkranSuresi
+                                </MudText>
+
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Error"
+                                           Size="Size.Small"
+                                           OnClick="@(() => DiyetSil(d.i))">
+                                    Sil
+                                </MudButton>
+
+                            </MudStack>
+
+                        </MudPaper>
+                    }
+
+                </MudStack>
+            }
+
+        </MudPaper>
+
+        <!-- 5) ZİYARET + ANTROPOMETRİ -->
+        <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
+
+            <MudText Typo="Typo.h6" Class="mb-4">
+                5) İlk Ziyaret + Antropometri (opsiyonel)
+            </MudText>
+
+            <MudGrid>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudDatePicker Label="Ziyaret Tarihi"
+                                   Date="@ilkZiyaretTarihi"
+                                   DateChanged="@(d => ilkZiyaretTarihi = d ?? DateTime.Today)"
+                                   DateFormat="dd.MM.yyyy"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense"
+                                   Clearable="false" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="8">
+                    <MudTextField @bind-Value="ilkZiyaretNotu"
+                                  Label="Not"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="3">
+                    <MudNumericField T="decimal?"
+                                     @bind-Value="boy"
+                                     Label="Boy (cm)"
+                                     Step="0.1M"
+                                     Min="30M"
+                                     Max="220M"
+                                     Variant="Variant.Outlined"
+                                     Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="3">
+                    <MudNumericField T="decimal?"
+                                     @bind-Value="kilo"
+                                     Label="Kilo (kg)"
+                                     Step="0.1M"
+                                     Min="1M"
+                                     Max="200M"
+                                     Variant="Variant.Outlined"
+                                     Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="3">
+                    <MudNumericField T="decimal?"
+                                     @bind-Value="basCevresi"
+                                     Label="Baş Çev. (cm)"
+                                     Step="0.1M"
+                                     Min="25M"
+                                     Max="65M"
+                                     Variant="Variant.Outlined"
+                                     Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="3">
+                    <MudNumericField T="decimal?"
+                                     @bind-Value="oturmaBoyuCm"
+                                     Label="Oturma Boyu (cm)"
+                                     Step="0.1M"
+                                     Min="20M"
+                                     Max="140M"
+                                     Variant="Variant.Outlined"
+                                     Margin="Margin.Dense" />
+                </MudItem>
+
+            </MudGrid>
+
+        </MudPaper>
+
+        <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
+
+            <MudText Typo="Typo.h6" Class="mb-4">
+                6) PuberteFizik & YorumPlan (opsiyonel)
+            </MudText>
+
+            <MudGrid>
+
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="pf.PuberteNotu"
+                                  Label="Puberte Notu"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="pf.PatolojikFizik"
+                                  Label="Patolojik Fizik"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="yp.TedaviBeslenmeSpor"
+                                  Label="Tedavi/Beslenme/Spor"
+                                  Lines="3"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="yp.YorumNotlar"
+                                  Label="Yorum Notlar"
+                                  Lines="3"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker Label="Oluşturma Tarihi"
+                                   Date="@yp.OlusturmaTarihi"
+                                   DateChanged="@(d => yp.OlusturmaTarihi = d)"
+                                   DateFormat="dd.MM.yyyy"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense"
+                                   Clearable="true" />
+                </MudItem>
+
+            </MudGrid>
+
+        </MudPaper>
+
+        <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
+
+            <MudText Typo="Typo.h6" Class="mb-4">
+                7) Klinik Özet (opsiyonel)
+            </MudText>
+
+            <MudGrid>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudNumericField T="decimal?"
+                                     @bind-Value="ozet.KulacCm"
+                                     Label="Kulaç (cm)"
+                                     Step="0.1M"
+                                     Variant="Variant.Outlined"
+                                     Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudNumericField T="decimal?"
+                                     @bind-Value="ozet.HedefBoyCm"
+                                     Label="Hedef Boy (cm)"
+                                     Step="0.1M"
+                                     Variant="Variant.Outlined"
+                                     Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" md="8">
+                    <MudTextField @bind-Value="ozet.BoyaUyanTarti"
+                                  Label="Boya Uyan Tartı"
+                                  MaxLength="50"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" />
+                </MudItem>
+
+            </MudGrid>
+
+        </MudPaper>
+    }
+
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-4">
+
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Size="Size.Large"
+                   Disabled="@busy"
+                   OnClick="Kaydet">
+            Kaydet
+        </MudButton>
+
         @if (busy)
         {
-            <span class="saving">Kaydediliyor…</span>
+            <MudProgressCircular Size="Size.Small"
+                                 Color="Color.Primary"
+                                 Indeterminate="true" />
+
+            <MudText Color="Color.Secondary">
+                Kaydediliyor…
+            </MudText>
         }
-    </div>
+
+    </MudStack>
 </div>
 
 @code {
@@ -270,13 +683,22 @@
 
     // 6) PuberteFizik + YorumPlan
     PuberteFizikCreateDto pf = new();
-    YorumPlanCreateDto yp = new();
+    YorumPlanCreateDto yp = new()
+    {
+        OlusturmaTarihi = DateTime.Today
+    };
 
     // 7) Klinik Özet
     OzetHesapCreateDto ozet = new();
 
     protected override async Task OnInitializedAsync()
     {
+        if (!LoginState.IsLoggedIn)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
         try { await Api.HealthAsync(); }
         catch { ShowError("API bağlantısı kurulamadı."); }
     }
@@ -356,11 +778,13 @@
                 Oykuler = Any(oyku) ? oyku : null,
                 Diyetler = diyetler.Count > 0 ? diyetler : null,
 
-                Ziyaret = new ZiyaretCreateDto
-                {
-                    Tarih = ilkZiyaretTarihi,
-                    Notlar = string.IsNullOrWhiteSpace(ilkZiyaretNotu) ? null : ilkZiyaretNotu
-                },
+                Ziyaret = LoginState.IsDoctor
+                    ? new ZiyaretCreateDto
+                    {
+                        Tarih = ilkZiyaretTarihi,
+                        Notlar = string.IsNullOrWhiteSpace(ilkZiyaretNotu) ? null : ilkZiyaretNotu
+                    }
+                    : null,
 
                 Antropometri = (boy.HasValue || kilo.HasValue || basCevresi.HasValue || oturmaBoyuCm.HasValue)
                   ? new AntropometriCreateDto
@@ -429,67 +853,12 @@
 }
 
 <style>
-    
     .form-page {
         width: 100%;
         max-width: none;
         margin: 0;
         padding: 0 16px 24px 16px;
         display: block;
-    }
-
-    .card {
-        background: #fff;
-        border: 1px solid #e6e6e6;
-        border-radius: 8px;
-        padding: 14px;
-        margin-bottom: 14px;
-        width: 100%;
-    }
-
-        .card h4 {
-            margin: 0 0 10px;
-            font-weight: 600;
-        }
-
-    .grid-2 {
-        display: grid;
-        grid-template-columns: repeat(2,minmax(0,1fr));
-        gap: 12px;
-    }
-
-    .grid-3 {
-        display: grid;
-        grid-template-columns: repeat(3,minmax(0,1fr));
-        gap: 12px;
-    }
-
-    .grid-6 {
-        display: grid;
-        grid-template-columns: repeat(6,minmax(0,1fr));
-        gap: 12px;
-    }
-
-    .grid-7 {
-        display: grid;
-        grid-template-columns: repeat(7,minmax(0,1fr));
-        gap: 12px;
-    }
-
-    .align-end {
-        align-items: end;
-    }
-
-    .span-2 {
-        grid-column: span 2;
-    }
-
-    .span-3 {
-        grid-column: span 3;
-    }
-
-    .span-7 {
-        grid-column: span 7;
     }
 
     label {
@@ -500,7 +869,9 @@
         color: #444;
     }
 
-        label input, label select, label textarea {
+        label input,
+        label select,
+        label textarea {
             width: 100%;
             box-sizing: border-box;
             padding: 8px 10px;
@@ -512,117 +883,5 @@
 
         label textarea {
             resize: vertical;
-        }
-
-    .list-inline {
-        margin: .5rem 0 0;
-        padding-left: 1rem;
-    }
-
-    .link-btn {
-        margin-left: .5rem;
-        background: transparent;
-        color: #1976d2;
-        border: none;
-        cursor: pointer;
-    }
-
-        .link-btn:hover {
-            text-decoration: underline;
-        }
-
-    .btn-cell {
-        display: flex;
-        align-items: end;
-    }
-
-    .actions {
-        margin-top: .5rem;
-        display: flex;
-        align-items: center;
-        gap: .5rem;
-    }
-
-    .saving {
-        color: #555;
-    }
-
-    @@media (max-width:1024px) {
-        .grid-6 {
-            grid-template-columns: repeat(3,minmax(0,1fr));
-        }
-
-        .grid-7 {
-            grid-template-columns: repeat(4,minmax(0,1fr));
-        }
-    }
-
-    @@media (max-width:680px) {
-        .grid-7, .grid-6, .grid-3, .grid-2 {
-            grid-template-columns: 1fr;
-        }
-
-        .span-2, .span-3, .span-7 {
-            grid-column: 1 / -1;
-        }
-    }
-
-    .btn-small {
-        padding: 6px 14px;
-        background-color: #1976d2;
-        color: #fff;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        width: fit-content;
-        justify-self: start;
-        font-weight: 500;
-        transition: background-color .2s;
-    }
-
-        .btn-small:hover {
-            background-color: #145ca8;
-        }
-
-        .btn-small:disabled {
-            background-color: #aac7eb;
-            color: #f5f5f5;
-            cursor: not-allowed;
-        }
-
-    .btn-save {
-        background-color: #28a745;
-        color: #fff;
-        border: none;
-        padding: 8px 20px;
-        border-radius: 6px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-    }
-
-        .btn-save:hover {
-            background-color: #218838;
-        }
-
-        .btn-save:disabled {
-            background-color: #94d3a2;
-            cursor: not-allowed;
-        }
-
-    .btn-delete {
-        margin-left: .5rem;
-        background-color: #dc3545;
-        color: #fff;
-        border: none;
-        border-radius: 4px;
-        padding: 4px 10px;
-        cursor: pointer;
-        font-size: 13px;
-        transition: background-color .2s;
-    }
-
-        .btn-delete:hover {
-            background-color: #b02a37;
         }
 </style>
